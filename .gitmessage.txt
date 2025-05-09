@@ -1,0 +1,43 @@
+<type>(scope): <short, imperative summary of what you did>
+
+# ---------------------
+# Common types:
+# feat       - New feature (e.g., adding a model, endpoint)
+# fix        - Bug fix
+# docs       - Documentation-only changes (e.g., README, docstrings)
+# style      - Code style change (no logic change)
+# refactor   - Code restructuring (e.g., moving files, cleaning up)
+# test       - Add or modify tests
+# chore      - Misc changes (env files, configs, setup)
+# perf       - Performance improvements
+# ci         - CI/CD config changes
+
+# ---------------------
+# Common scopes (optional, use if it makes sense):
+# auth, product, stock, customer, supplier, incoming-order, outgoing-order,
+# category, db, schema, utils, docs, config
+
+# ---------------------
+# Summary example:
+# feat(customer): create customer model and endpoint
+# fix(outgoing-order): fix totalPriceToPay calculation
+
+<Optional detailed body>
+
+# What, why, and anything that helps reviewers or your future self.
+# Use bullet points for multiple changes.
+#
+# - Added new Customer schema using Pydantic
+# - Created `/customers` route with GET and POST support
+# - Validated phone numbers using regex
+#
+# Limit each line to ~72 characters
+
+<Optional footer>
+
+# Link to issue, PR, or breaking change info
+#
+# Examples:
+# Closes #5
+# Related to #3
+# BREAKING CHANGE: Changed schema field 'quantity' to 'availableQuantity'

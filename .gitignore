@@ -1,0 +1,30 @@
+# Virtual environment directories
+.venv/
+fastapi-env/
+
+# Python cache files
+**/__pycache__/
+*.py[cod]
+
+
+.env
+!.env.example
+
+# Editor and IDE settings
+.vscode/
+.idea/
+*.swp
+
+# Logs and temp files
+*.log
+*.db
+
+# Test and coverage files
+.tox/
+.coverage
+coverage.xml
+htmlcov/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
