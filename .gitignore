@@ -1,5 +1,6 @@
 # Virtual environment directories
 .venv/
+env/
 fastapi-env/
 
 # Python cache files
