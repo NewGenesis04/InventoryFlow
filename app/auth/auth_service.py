@@ -1,47 +1,43 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models import User
-from .schemas import AuthRegister
+from fastapi import HTTPException, Depends
+from app.db.schemas import AuthRegister
+from app.utils import filter_user
+from sqlalchemy.exc import SQLAlchemyError
 from .auth_utils import hash_password, verify_password
-class UserService():
-    def __init__(self, session: AsyncSession):
-        self.session = session
-
-    async def get_user_by_id(self, user_id):
-        user =  await self.session.query(User).filter(User.id == user_id).first()
-        user_schema = AuthRegister.model_validate(user)
-        return user_schema.model_dump()
+import logging
+logger = logging.getLogger(__name__)
+class AuthService():
+    def __init__(self, db: AsyncSession):
+        self.db = db
         
-
-    async def get_user_by_email(self, email):
-        user = self.session.query(User).filter(User.email == email).first()
-        user_schema = AuthRegister.model_validate(user)
-        return user_schema.model_dump()
     
-    
-    async def check_if_user_exists(self, email):
-        user = self.get_user_by_email(email)
-        return True if user else None
-    
-    async def create_user(self, user_data: AuthRegister):
-        user = await self.check_if_user_exists(user_data.email)
-        if user:
-            raise ValueError("User already exists")
-        user_data.password = hash_password(user_data.password)
-        user = User(**user_data.model_dump())
-        self.session.add(user)
-        await self.session.commit()
-        user_schema = AuthRegister.model_validate(user)
-        return user_schema.model_dump()
+    async def register_user(self, request: AuthRegister):
+        # Check if the user already exists
+        existing_user_query = await filter_user(self.db, User.email == request.email)
+        existing_user = existing_user_query.first()
 
-    async def update_user(self, user_id: int, user_data: AuthRegister):
-        user = await self.session.query(User).filter(User.id == user_id).first()
-        for key, value in user_data.model_dump().items():
-            setattr(user, key, value)
-        await self.session.commit()
-        return user
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
 
-    async def delete_user(self, user_id):
-        user = await self.session.get(User, user_id)
-        await self.session.delete(user)
-        await self.session.commit()
-        return user
+        try:
+            # Hash the password and create a new user
+            hashed_password = hash_password(request.password)
+            new_user = User(
+                username=request.username,
+                email=request.email,
+                role=request.role,
+                password=hashed_password,
+            )
+            self.db.add(new_user)
+            await self.db.commit()
+            await self.db.refresh(new_user)
+
+            return new_user
+        except (SQLAlchemyError, Exception) as e:
+            await self.db.rollback() 
+            logger.error(f"Error creating user: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail="Error creating new user"
+            )
+

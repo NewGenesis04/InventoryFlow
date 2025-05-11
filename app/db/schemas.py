@@ -8,7 +8,7 @@ class BaseAuth(BaseModel):
     email: EmailStr
     password: str    
     class Config:
-        model_config = ConfigDict(from_attributes=True)  # Enables ORM mode
+        from_attributes = True
 
 class AuthLogin(BaseAuth):
     pass
@@ -29,3 +29,12 @@ class AuthPasswordUpdate(BaseModel):
     old_password: str
     new_password: str
 
+
+class User(BaseModel):
+    id: int
+    username: str
+    role: str
+    email: str
+
+    class Config:
+        from_attributes = True

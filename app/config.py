@@ -13,6 +13,7 @@ class Settings:
     DATABASE_URL= os.getenv("DATABASE_URL")
     JWT_SECRET_KEY= os.getenv("JWT_SECRET_KEY", "def_jwt_secret_key_!(#)")
     JWT_ALGORITHM= os.getenv("JWT_ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES= os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 5)
 
 class LoggingSettings:
     @staticmethod
