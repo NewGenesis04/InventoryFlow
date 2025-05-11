@@ -7,8 +7,9 @@ import logging
 from app.middleware.cors import add_cors_middleware
 
 setup_logging = logging_settings.setup_logging
+
 try:
-    setup_logging()
+    setup_logging() #I initialised the logging configuration in config.py here. This ensures that all loggers in the app follow the pattern
     logger = logging.getLogger(__name__)
     logger.info("FastAPI application is starting...")
 except Exception as e:
