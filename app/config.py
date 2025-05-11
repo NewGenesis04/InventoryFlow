@@ -3,17 +3,17 @@ from dotenv import load_dotenv
 from pathlib import Path
 from logging.config import dictConfig
 
-env_path = Path('.') / '.env'
-load_dotenv(dotenv_path=env_path)
+load_dotenv()
 
 class Settings:
     PROJECT_NAME: str = "InventoryFlow API"
     PROJECT_VERSION: str = "0.0.1"
     PROJECT_DESCRIPTION: str = "InventoryFlow is a blazing-fast, API-first inventory management system that helps you organize stock, manage orders, and automate communication across your supply chain — all with clean code and a modular design."
 
-    DATABASE_URL= os.getenv("DB_URL")
+    DATABASE_URL= os.getenv("DATABASE_URL")
     JWT_SECRET_KEY= os.getenv("JWT_SECRET_KEY", "def_jwt_secret_key_!(#)")
     JWT_ALGORITHM= os.getenv("JWT_ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES= os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 5)
 
 class LoggingSettings:
     @staticmethod

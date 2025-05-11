@@ -2,6 +2,7 @@
 .venv/
 env/
 fastapi-env/
+env/
 
 # Python cache files
 **/__pycache__/
