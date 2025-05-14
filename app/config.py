@@ -6,6 +6,7 @@ from logging.config import dictConfig
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 
+
 class Settings:
     PROJECT_NAME: str = "InventoryFlow API"
     PROJECT_VERSION: str = "0.0.1"

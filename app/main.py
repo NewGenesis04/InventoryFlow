@@ -5,6 +5,8 @@ from pathlib import Path
 import os
 import logging
 from app.middleware.cors import add_cors_middleware
+#importing routers
+from app.routers import product, stock, order
 
 setup_logging = logging_settings.setup_logging
 try:
@@ -16,6 +18,11 @@ except Exception as e:
     raise
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION, description=settings.PROJECT_DESCRIPTION)
+#Chisom
+app.include_router(product.router, tags=["Product"])
+app.include_router(stock.router, tags=["Stock"])
+app.include_router(order.router, tags=["Order"])
+
 
 add_cors_middleware(app)
 
@@ -23,3 +30,5 @@ add_cors_middleware(app)
 async def root():
     logger.info("Root endpoint accessed")
     return {"message": "This is the root endpoint of the InventoryFlow API"}
+
+
