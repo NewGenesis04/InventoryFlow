@@ -3,8 +3,8 @@ from app.db.schemas import IncomingOrderCreate, IncomingOrderOut
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.db.models import IncomingOrder
-from app.db.schemas import Product, Stock
+from app.db.models import IncomingOrder, Product, Stock
+
 
 
 logger = logging.getLogger(__name__)
