@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from config import settings, logging_settings
+from app.config import settings, logging_settings
 from dotenv import load_dotenv
 from pathlib import Path
 import os
@@ -20,6 +20,8 @@ except Exception as e:
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION, description=settings.PROJECT_DESCRIPTION)
 #Chisom
+from app.routers import products, stock, incoming_orders, outgoing_orders
+
 app.include_router(products.router, tags=["Product"])
 app.include_router(stock.router, tags=["Stock"])
 app.include_router(incoming_orders.router, tags=["Incoming Orders"])
