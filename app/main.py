@@ -1,11 +1,11 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from config import settings, logging_settings
+from app.config import settings, logging_settings
 from dotenv import load_dotenv
 from pathlib import Path
 import os
 import logging
-from middleware.cors import add_cors_middleware
+from app.middleware.cors import add_cors_middleware
 
 setup_logging = logging_settings.setup_logging
 
@@ -19,6 +19,14 @@ except Exception as e:
     raise
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION, description=settings.PROJECT_DESCRIPTION)
+#Chisom
+from app.routers import products, stock, incoming_orders, outgoing_orders
+
+app.include_router(products.router, tags=["Product"])
+app.include_router(stock.router, tags=["Stock"])
+app.include_router(incoming_orders.router, tags=["Incoming Orders"])
+app.include_router(outgoing_orders.router, tags=["Outgoing Orders"])
+
 
 add_cors_middleware(app)
 
@@ -26,4 +34,3 @@ add_cors_middleware(app)
 async def root():
     logger.info("Root endpoint accessed")
     return {"message": "This is the root endpoint of the InventoryFlow API"}
-

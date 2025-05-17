@@ -1,6 +1,7 @@
 # Virtual environment directories
 .venv/
 env/
+venv/
 fastapi-env/
 env/
 
