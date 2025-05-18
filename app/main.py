@@ -6,6 +6,10 @@ from pathlib import Path
 import os
 import logging
 from app.middleware.cors import add_cors_middleware
+from app.routers.incoming_orders import incoming_orders
+from app.routers.outgoing_orders import outgoing_orders
+from app.routers.stock import stock
+from app.routers.products import products
 
 setup_logging = logging_settings.setup_logging
 
@@ -19,8 +23,7 @@ except Exception as e:
     raise
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION, description=settings.PROJECT_DESCRIPTION)
-#Chisom
-from app.routers import products, stock, incoming_orders, outgoing_orders
+
 
 app.include_router(products.router, tags=["Product"])
 app.include_router(stock.router, tags=["Stock"])
