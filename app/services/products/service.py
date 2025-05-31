@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from app.db.database import get_db
 from app.db.models import Product, Stock
 from app.db.schemas import ProductCreate, ProductResponse
-from services.base import BaseService
+from app.services.base import BaseService
 import logging
 
 logger = logging.getLogger(__name__)

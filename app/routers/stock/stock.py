@@ -1,5 +1,5 @@
 import logging
-from app.db.schemas import StockUpdate, StockOut
+from app.db.schemas import StockUpdate, StockResponse
 from fastapi import APIRouter, Depends, HTTPException
 from app.db.models import Stock
 from sqlalchemy.orm import Session
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.patch("/stock/{id}", response_model=StockOut)
+@router.patch("/stock/{id}", response_model=StockResponse, status_code=200)
 def update_stock(id: int, stock_update: StockUpdate, db: Session = Depends(get_db)):
     logger.info(f"Received request to update stock with ID: {id}")
     

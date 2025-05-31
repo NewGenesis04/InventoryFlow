@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from app.db.database import get_db
 from app.db.models import IncomingOrder, Product, Stock
 from app.db.schemas import IncomingOrderCreate, IncomingOrderResponse
-from services.base import BaseService
+from app.services.base import BaseService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ class IncomingOrderService(BaseService):
         result = await self.db.execute(select(Product).where(Product.id == order.product_id))
         product = result.scalars().first()
         if not product:
-            logger.error("Product with ID %s not found", order.product_id)
+            logger.error(f"Product with ID {order.product_id} not found")
             raise HTTPException(status_code=404, detail="Product not found")
 
         total_price = product.price * order.quantity

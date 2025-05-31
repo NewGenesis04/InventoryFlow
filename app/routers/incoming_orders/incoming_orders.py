@@ -14,7 +14,7 @@ def get_incoming_order_service(db: AsyncSession = Depends(get_db)) -> IncomingOr
 
 router = APIRouter()
 
-@router.post("/incoming-orders", response_model=IncomingOrderResponse, tatus_code=status.HTTP_201_CREATED)
+@router.post("/incoming-orders", response_model=IncomingOrderResponse, status_code=status.HTTP_201_CREATED)
 async def create_incoming_order(order: IncomingOrderCreate, service: IncomingOrderService = Depends(get_incoming_order_service)):
     logger.info(f"Incoming order endpoint accessed")
     try:
