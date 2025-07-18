@@ -1,6 +1,6 @@
 import logging
 from app.db.schemas import OutgoingOrderCreate, OutgoingOrderResponse
-from app.services.outgoing_orders.service import OutgoingOrderService
+from app.services.outgoing_order_service import OutgoingOrderService
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db 

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.schemas import ProductCreate, ProductResponse
 from app.db.database import get_db
-from app.services.products.service import ProductService
+from app.services.products_service import ProductService
 
 # Configure logging
 logger = logging.getLogger(__name__)

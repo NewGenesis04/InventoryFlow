@@ -1,15 +1,20 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
 from app.config import settings, logging_settings
 from dotenv import load_dotenv
 from pathlib import Path
 import os
 import logging
 from app.middleware.cors import add_cors_middleware
-from app.routers.incoming_orders import incoming_orders
-from app.routers.outgoing_orders import outgoing_orders
-from app.routers.stock import stock
-from app.routers.products import products
+from app.routers.incoming_orders.incoming_orders import router as incoming_orders_router
+from app.routers.outgoing_orders.outgoing_orders import router as outgoing_orders_router
+from app.routers.stock.stock import router as stock_router
+from app.routers.products.products import router as products_router
+from app.auth.auth_route import router as auth_router
+from app.db.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
+
 
 setup_logging = logging_settings.setup_logging
 
@@ -24,16 +29,28 @@ except Exception as e:
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION, description=settings.PROJECT_DESCRIPTION)
 
-
-app.include_router(products.router, tags=["Product"])
-app.include_router(stock.router, tags=["Stock"])
-app.include_router(incoming_orders.router, tags=["Incoming Orders"])
-app.include_router(outgoing_orders.router, tags=["Outgoing Orders"])
+app.include_router(auth_router, prefix="/auth", tags=["Auth"])
+app.include_router(products_router, tags=["Product"])
+app.include_router(stock_router, tags=["Stock"])
+app.include_router(incoming_orders_router, tags=["Incoming Orders"])
+app.include_router(outgoing_orders_router, tags=["Outgoing Orders"])
 
 
 add_cors_middleware(app)
 
 @app.get("/")
-async def root():
-    logger.info("Root endpoint accessed")
-    return {"message": "This is the root endpoint of the InventoryFlow API"}
+async def root(db: AsyncSession = Depends(get_db)):
+    try:
+
+        logger.info("Root endpoint accessed")
+        await db.execute(text("SELECT 1"))  # Simple query to check DB connection
+        logger.info("Database health check successful")
+        return {"message": "This is the root endpoint of the InventoryFlow API",
+                "status": "healthy",
+                "database": "connected"}
+    except Exception as e:
+        logger.error(f"Database health check failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database health check failed: {str(e)}"
+        )
