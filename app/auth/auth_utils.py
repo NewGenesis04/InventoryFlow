@@ -44,11 +44,9 @@ def create_token(data: dict, expires_delta: timedelta = None):
     
 async def authenticate_user(db: AsyncSession, email: str, password: str):   
     #Retrieve the first result asynchronously
-    query = await filter_user(db, User.email == email)
-    user = await query.first()
-
+    user = await filter_user(db, User.email == email)
     #Verify the user and password
-    if user is None or not verify_password(password, user.password):
+    if user is None or not verify_password(password, user.hashed_password):
         logger.warning("Authentication failed")
         return False
 
@@ -63,8 +61,8 @@ async def get_current_user(token: HTTPAuthorizationCredentials = Depends(http_sc
             raise HTTPException(status_code=401, detail="Invalid token")
         user_id = int(user_id)
 
-        query = await filter_user(db, User.id == user_id)
-        current_user = await query.first()
+        current_user = await filter_user(db, User.id == user_id)
+
         if not current_user:
             print("No user found in database")
             raise HTTPException(status_code=401, detail="User not found")
