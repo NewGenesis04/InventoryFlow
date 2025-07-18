@@ -3,7 +3,7 @@ from app.db.schemas import IncomingOrderCreate, IncomingOrderResponse
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
-from app.services.incoming_orders.service import IncomingOrderService
+from app.services.incoming_orders_service import IncomingOrderService
 
 
 

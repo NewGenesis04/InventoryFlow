@@ -9,6 +9,7 @@ env/
 **/__pycache__/
 *.py[cod]
 
+feature_requirements.txt
 
 .env
 !.env.example

@@ -6,4 +6,4 @@ from app.db.models import User
 async def filter_user(db: AsyncSession, filter_condition: BinaryExpression):
     query = select(User).where(filter_condition)
     result = await db.execute(query)
-    return result.scalars()
+    return result.scalars().first()

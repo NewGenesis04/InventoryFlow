@@ -14,6 +14,7 @@ class AuthLogin(BaseAuth):
     pass
 
 class AuthRegister(BaseAuth):
+    username: str
     first_name: str
     last_name: str
     role: str
@@ -32,6 +33,8 @@ class AuthPasswordUpdate(BaseModel):
 class User(BaseModel):
     id: int
     username: str
+    first_name: str
+    last_name: str
     role: str
     email: str
 

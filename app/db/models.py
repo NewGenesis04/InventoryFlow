@@ -9,11 +9,16 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     role = Column(String, default="customer")
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    customers = relationship("Customer", back_populates="user")
+    suppliers = relationship("Supplier", back_populates="user")
 
     
 class Category(Base):
@@ -24,6 +29,8 @@ class Category(Base):
     description = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    products = relationship("Product", back_populates="category")
 
 class Product(Base):
     __tablename__ = "products"
@@ -38,6 +45,9 @@ class Product(Base):
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     category = relationship("Category", back_populates="products")
+    stocks = relationship("Stock", back_populates="product")
+    incoming_orders = relationship("IncomingOrder", back_populates="product")
+    outgoing_orders = relationship("OutgoingOrder", back_populates="product")
 
 class Stock(Base):
     __tablename__ = "stocks"
@@ -64,6 +74,7 @@ class Customer(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
+    outgoing_orders = relationship("OutgoingOrder", back_populates="customer")
     user = relationship("User", back_populates="customers")
 
 class Supplier(Base):
@@ -79,6 +90,7 @@ class Supplier(Base):
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="suppliers")
+    incoming_orders = relationship("IncomingOrder", back_populates="supplier")
 
 class IncomingOrder(Base):
     __tablename__ = "incoming_orders"
