@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from app.db.schemas import AuthRegister, AuthLogin, AuthResponse
-from app.db.models import User
+from app.db.models import User, UserRole
 from app.db import schemas
 from typing import Optional
 from app.utils import filter_user
@@ -36,7 +36,7 @@ class AuthService():
                 role=request.role,
                 hashed_password=hashed_password
             )
-            
+            logger.info(f"Creating new user: {new_user.username}, {new_user.email}, {new_user.role}, {new_user.first_name}, {new_user.last_name}")
             self.db.add(new_user)
             await self.db.commit()
             await self.db.refresh(new_user)

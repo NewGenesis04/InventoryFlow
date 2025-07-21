@@ -1,6 +1,7 @@
 from pydantic import BaseModel
-from pydantic import EmailStr, field_validator
-from typing import List, Optional
+from pydantic import EmailStr
+from app.db.models import UserRole
+from typing import List, Optional, Literal
 from datetime import datetime
 from pydantic import ConfigDict 
 
@@ -17,7 +18,7 @@ class AuthRegister(BaseAuth):
     username: str
     first_name: str
     last_name: str
-    role: str
+    role: UserRole
     phone: Optional[str] = None
     address: Optional[str] = None
 

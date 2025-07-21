@@ -9,6 +9,7 @@ from app.middleware.cors import add_cors_middleware
 from app.routers.incoming_orders.incoming_orders import router as incoming_orders_router
 from app.routers.outgoing_orders.outgoing_orders import router as outgoing_orders_router
 from app.routers.stock.stock import router as stock_router
+from app.routers.category.category import router as category_router
 from app.routers.products.products import router as products_router
 from app.auth.auth_route import router as auth_router
 from app.db.database import get_db
@@ -30,6 +31,7 @@ except Exception as e:
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION, description=settings.PROJECT_DESCRIPTION)
 
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
+app.include_router(category_router, prefix="/categories", tags=["Category"])
 app.include_router(products_router, tags=["Product"])
 app.include_router(stock_router, tags=["Stock"])
 app.include_router(incoming_orders_router, tags=["Incoming Orders"])

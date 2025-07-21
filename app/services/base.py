@@ -6,5 +6,5 @@ from app.db.database import get_db
 
 class BaseService:
     def __init__(self, db: AsyncSession, current_user: Optional[schemas.User]):
-        self.db = db,
+        self.db = db
         self.user = current_user
