@@ -52,10 +52,10 @@ class CustomerCreate(BaseModel):
     address: Optional[str]
 
 class CustomerUpdate(BaseModel):
-    first_name: Optional[str]
-    last_name: Optional[str]
-    phone_number: Optional[str]
-    address: Optional[str]
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    address: Optional[str] = None
 
 class CustomerResponse(BaseModel):
     id: int
@@ -87,10 +87,10 @@ class SupplierCreate(BaseModel):
     address: Optional[str]
 
 class SupplierUpdate(BaseModel):
-    name: Optional[str]
-    phone_number: Optional[str]
-    email: Optional[EmailStr]
-    address: Optional[str]
+    name: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[EmailStr] = None
+    address: Optional[str] = None
 
 class SupplierResponse(BaseModel):
     id: int
@@ -117,15 +117,13 @@ class ProductCreate(BaseModel):
     name: str
     description: Optional[str]
     price: Optional[int]
-    quantity: Optional[int]
     category_id: int
 
 class ProductUpdate(BaseModel):
-    name: Optional[str]
-    description: Optional[str]
-    price: Optional[int]
-    quantity: Optional[int]
-    category_id: Optional[int]
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[int] = None
+    category_id: Optional[int] = None
 
 class ProductCategorySummary(BaseModel):
     id: int
@@ -139,7 +137,6 @@ class ProductResponse(BaseModel):
     name: str
     description: Optional[str]
     price: Optional[int]
-    quantity: Optional[int]
     category: ProductCategorySummary
     created_at: datetime
     updated_at: datetime
@@ -160,8 +157,8 @@ class CategoryCreate(BaseModel):
     description: Optional[str]
 
 class CategoryUpdate(BaseModel):
-    name: Optional[str]
-    description: Optional[str]
+    name: Optional[str] = None
+    description: Optional[str] = None
 
 class CategoryResponse(BaseModel):
     id: int
@@ -180,9 +177,9 @@ class StockCreate(BaseModel):
     total_price: Optional[int]
 
 class StockUpdate(BaseModel):
-    available_quantity: Optional[int]
-    product_price: Optional[int]
-    total_price: Optional[int]
+    available_quantity: Optional[int] = None
+    product_price: Optional[int] = None
+    total_price: Optional[int] = None
 
 
 class StockResponse(BaseModel):

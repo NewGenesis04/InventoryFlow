@@ -32,10 +32,10 @@ app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION, des
 
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 app.include_router(category_router, prefix="/categories", tags=["Category"])
-app.include_router(products_router, tags=["Product"])
-app.include_router(stock_router, tags=["Stock"])
-app.include_router(incoming_orders_router, tags=["Incoming Orders"])
-app.include_router(outgoing_orders_router, tags=["Outgoing Orders"])
+app.include_router(products_router, prefix="/products",tags=["Product"])
+app.include_router(stock_router, prefix="/stocks", tags=["Stock"])
+app.include_router(incoming_orders_router, prefix="/incoming",tags=["Incoming Orders"])
+app.include_router(outgoing_orders_router, prefix="/outgoing",tags=["Outgoing Orders"])
 
 
 add_cors_middleware(app)
