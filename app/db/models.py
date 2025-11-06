@@ -1,9 +1,7 @@
-from email.policy import default
 from datetime import datetime, timezone
 from app.db.database import Base
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Enum as SqlEnum, Numeric
 from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
 from enum import Enum
 
 class UserRole(str, Enum):

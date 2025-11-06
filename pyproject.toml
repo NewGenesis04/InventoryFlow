@@ -1,0 +1,15 @@
+[project]
+name = "inventoryflow"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "aioredis>=2.0.1",
+    "alembic>=1.17.1",
+    "asyncpg>=0.30.0",
+    "cloudinary>=1.44.1",
+    "fastapi>=0.121.0",
+    "python-dotenv>=1.2.1",
+    "python-jose>=3.5.0",
+    "rich>=14.2.0",
+    "sendgrid>=6.12.5",
+]

@@ -1,8 +1,6 @@
-from fastapi import Depends, status, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException
 from sqlalchemy.future import select
 from typing import List
-from app.db.database import get_db
 from app.db.models import Category
 from app.db.schemas import CategoryCreate, CategoryResponse
 from app.services.base import BaseService

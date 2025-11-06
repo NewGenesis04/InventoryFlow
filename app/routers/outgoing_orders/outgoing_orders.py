@@ -1,34 +1,41 @@
 import logging
-from app.db.schemas import OutgoingOrderCreate, OutgoingOrderResponse
+from fastapi import APIRouter, Depends, status
+from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.schemas import OutgoingOrderCreate, OutgoingOrderResponse, OutgoingOrderSummary, User
+from app.db.database import get_db
+from app.db.models import UserRole
+from app.auth.auth_utils import get_current_user, role_required
 from app.services.outgoing_order_service import OutgoingOrderService
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from app.db.database import get_db 
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-async def get_outgoing_order_service(db: Session = Depends(get_db)) -> OutgoingOrderResponse:
-    return OutgoingOrderService(db)
-
-@router.post("/outgoing-orders", response_model=OutgoingOrderResponse, status_code=status.HTTP_201_CREATED)
-async def outgoing_order(service: OutgoingOrderService = Depends(get_outgoing_order_service), **order: OutgoingOrderCreate):
-    logger.info('outgoing-orders route accessed')
-    try:
-        return await service.created_outgoing_order(order)
-    except Exception as e:
-        logger.error(f"Error creating outgoing order: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+def get_outgoing_order_service(require_user: bool = False):
+    if require_user:
+        async def _get_service(
+            db: AsyncSession = Depends(get_db),
+            current_user: User = Depends(get_current_user),
+        ):
+            return OutgoingOrderService(db, current_user)
+    else:
+        async def _get_service(db: AsyncSession = Depends(get_db)):
+            return OutgoingOrderService(db, None)
     
-@router.get("/outgoing-orders/{order_id}", response_model=OutgoingOrderResponse)
-async def get_outgoing_order(order_id: int, service: OutgoingOrderService = Depends(get_outgoing_order_service)):
-    logger.info(f"Fetching outgoing order with ID: {order_id}")
-    try:
-        return await service.get_outgoing_order(order_id)
-    except HTTPException as e:
-        logger.error(f"Error fetching outgoing order: {e.detail}")
-        raise e
-    except Exception as e:
-        logger.error(f"Error fetching outgoing order: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+    return _get_service
+
+@router.post("/", response_model=OutgoingOrderResponse, status_code=status.HTTP_201_CREATED)
+async def create_outgoing_order(order: OutgoingOrderCreate, service: OutgoingOrderService = Depends(get_outgoing_order_service(True)), has_permissions: bool = Depends(role_required([UserRole.admin]))):
+    logger.info("create outgoing order endpoint called")
+    return await service.create_outgoing_order(order)
+
+@router.get("/", response_model=List[OutgoingOrderSummary], status_code=status.HTTP_200_OK)
+async def get_all_outgoing_orders(service: OutgoingOrderService = Depends(get_outgoing_order_service(False))):
+    logger.info("get all outgoing orders endpoint called")
+    return await service.get_all_outgoing_orders()
+
+@router.get("/{id}", response_model=OutgoingOrderResponse, status_code=status.HTTP_200_OK)
+async def get_outgoing_order_by_id(id: int, service: OutgoingOrderService = Depends(get_outgoing_order_service(False))):
+    logger.info("get outgoing order by id endpoint called")
+    return await service.get_outgoing_order_by_id(id)

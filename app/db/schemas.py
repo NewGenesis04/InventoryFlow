@@ -170,70 +170,101 @@ class CategoryResponse(BaseModel):
     class Config:
         from_attributes = True
 
-class StockCreate(BaseModel):
-    product_id: int
-    available_quantity: int
-    product_price: Optional[int]
-    total_price: Optional[int]
-
 class StockUpdate(BaseModel):
     available_quantity: Optional[int] = None
-    product_price: Optional[int] = None
-    total_price: Optional[int] = None
-
 
 class StockResponse(BaseModel):
     id: int
     product: ProductSummary
+    batch_number: Optional[str]
     available_quantity: int
-    product_price: Optional[int]
-    total_price: Optional[int]
+    expiry_date: Optional[datetime]
     created_at: datetime
     updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class StockSummary(BaseModel):
+    id: int
+    available_quantity: int
 
     class Config:
         from_attributes = True
 
 
 #  IncomingOrder Schemas
-class IncomingOrderBase(BaseModel):
+
+class IncomingOrderCreate(BaseModel):
+    supplier_id: int
+    product_id: int
+    batch_number: str
     quantity: int
-    total_price: int
+    unit_cost: float
+    supply_date: datetime
+    expiry_date: Optional[datetime] = None
+
+class IncomingOrderResponse(BaseModel):
+    id: int
+    supplier: SupplierSummary
+    product: ProductSummary
+    batch_number: str
+    quantity: int
+    unit_cost: float
+    total_cost: float
+    status: str
+    supply_date: datetime
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class IncomingOrderSummary(BaseModel):
+    id: int
+    supplier_id: int
+    product_id: int
+    batch_number: str
+    quantity: int
+    total_cost: float
+    status: str
     supply_date: datetime
 
     class Config:
         from_attributes = True
-        
-class IncomingOrderCreate(IncomingOrderBase):
-    supplier_id: int
-    product_id: int
-
-class IncomingOrderResponse(IncomingOrderBase):
-    id: int
-    supplier: SupplierSummary
-    product: ProductSummary
-    created_at: datetime
-    updated_at: datetime
 
 #  OutgoingOrder Schemas
 
-class OutgoingOrderBase(BaseModel):
+class OutgoingOrderCreate(BaseModel):
+    customer_id: int
+    product_id: int
+    stock_id: int
+    quantity: int
+    order_date: datetime
+
+class OutgoingOrderResponse(BaseModel):
+    id: int
+    customer: CustomerSummary
+    product: ProductSummary
+    quantity: int
+    unit_price: Optional[int]
+    total_price: int
+    status: str
+    order_date: datetime
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class OutgoingOrderSummary(BaseModel):
+    id: int
+    customer_id: int
+    product_id: int
     quantity: int
     total_price: int
+    status: str
     order_date: datetime
 
     class Config:
         from_attributes = True
-class OutgoingOrderCreate(OutgoingOrderBase):
-    customer_id: int
-    product_id: int
-
-class OutgoingOrderResponse(OutgoingOrderBase):
-    id: int
-    customer: CustomerSummary
-    product: ProductSummary
-    created_at: datetime
-    updated_at: datetime
-
-class OrderStatusUpdate(BaseModel):
-    status: str  # e.g., "completed" or "cancelled"

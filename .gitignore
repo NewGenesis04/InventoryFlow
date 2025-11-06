@@ -5,6 +5,8 @@ venv/
 fastapi-env/
 env/
 
+WARP.md
+
 # Python cache files
 **/__pycache__/
 *.py[cod]

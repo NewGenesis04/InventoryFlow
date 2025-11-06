@@ -6,7 +6,6 @@ from app.config import settings
 SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True)
 Base = declarative_base()
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 async_session = sessionmaker(
     engine,

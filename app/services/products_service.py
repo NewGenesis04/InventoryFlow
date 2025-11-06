@@ -1,9 +1,7 @@
-from fastapi import Depends, status, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException
 from sqlalchemy.future import select
-from app.db.database import get_db
 from typing import List
-from app.db.models import Product, Stock
+from app.db.models import Product
 from app.db.schemas import ProductCreate, ProductResponse, ProductUpdate, ProductSummary
 from app.services.base import BaseService
 from sqlalchemy.orm import selectinload
