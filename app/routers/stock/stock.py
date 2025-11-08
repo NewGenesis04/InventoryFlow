@@ -6,7 +6,7 @@ from app.db.schemas import StockUpdate, StockResponse, StockSummary, User
 from app.db.database import get_db
 from app.db.models import UserRole
 from app.auth.auth_utils import get_current_user, role_required
-from app.services.stocks_service import StockService
+from app.services import StockService
 
 logger = logging.getLogger(__name__)
 

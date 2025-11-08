@@ -6,8 +6,7 @@ from app.db.schemas import CategoryCreate, CategoryResponse, CategoryUpdate
 from typing import List
 from app.auth.auth_utils import get_current_user, role_required
 from app.db.models import UserRole
-
-from app.services.category_service import CategoryService
+from app.services import CategoryService
 import logging
 
 logger = logging.getLogger(__name__)

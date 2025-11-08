@@ -6,7 +6,7 @@ from app.db.schemas import ProductCreate, ProductResponse, User, ProductUpdate, 
 from app.db.database import get_db
 from app.db.models import UserRole
 from app.auth.auth_utils import get_current_user, role_required
-from app.services.products_service import ProductService
+from app.services import ProductService
 
 # Configure logging
 logger = logging.getLogger(__name__)

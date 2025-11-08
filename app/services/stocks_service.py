@@ -3,7 +3,7 @@ from sqlalchemy.future import select
 from typing import List
 from app.db.models import Stock
 from app.db.schemas import StockUpdate, StockResponse, StockSummary
-from app.services.base import BaseService
+from app.services import BaseService
 from sqlalchemy.orm import selectinload
 import logging
 

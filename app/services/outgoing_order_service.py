@@ -3,7 +3,7 @@ from sqlalchemy.future import select
 from typing import List
 from app.db.models import OutgoingOrder, Product, Stock, Customer, OrderStatusEnum
 from app.db.schemas import OutgoingOrderCreate, OutgoingOrderResponse, OutgoingOrderSummary
-from app.services.base import BaseService
+from app.services import BaseService
 from sqlalchemy.orm import selectinload
 import logging
 

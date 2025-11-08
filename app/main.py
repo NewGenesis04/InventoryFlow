@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
-from app.config import settings, logging_settings
+from app import settings, logging_settings
 import logging
 from app.middleware.cors import add_cors_middleware
 from app.routers.incoming_orders.incoming_orders import router as incoming_orders_router

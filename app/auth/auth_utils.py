@@ -3,9 +3,8 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from app.utils import filter_user
-from app.config import settings
+from app import filter_user
+from app import settings
 from typing import List
 from app.db import schemas
 from app.db.database import get_db

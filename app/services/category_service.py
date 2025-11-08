@@ -3,7 +3,7 @@ from sqlalchemy.future import select
 from typing import List
 from app.db.models import Category
 from app.db.schemas import CategoryCreate, CategoryResponse
-from app.services.base import BaseService
+from app.services import BaseService
 import logging
                            
 logger = logging.getLogger(__name__)

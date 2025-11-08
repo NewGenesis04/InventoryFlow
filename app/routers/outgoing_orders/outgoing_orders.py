@@ -6,7 +6,7 @@ from app.db.schemas import OutgoingOrderCreate, OutgoingOrderResponse, OutgoingO
 from app.db.database import get_db
 from app.db.models import UserRole
 from app.auth.auth_utils import get_current_user, role_required
-from app.services.outgoing_order_service import OutgoingOrderService
+from app.services import OutgoingOrderService
 
 logger = logging.getLogger(__name__)
 

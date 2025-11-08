@@ -6,7 +6,7 @@ from app.db.schemas import IncomingOrderCreate, IncomingOrderResponse, IncomingO
 from app.db.database import get_db
 from app.db.models import UserRole
 from app.auth.auth_utils import get_current_user, role_required
-from app.services.incoming_orders_service import IncomingOrderService
+from app.services import IncomingOrderService
 
 logger = logging.getLogger(__name__)
 

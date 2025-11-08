@@ -1,13 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from app.db.schemas import AuthRegister, AuthLogin, AuthResponse
-from app.db.models import User, UserRole
+from app.db.models import User
 from app.db import schemas
 from typing import Optional
-from app.utils import filter_user
+from app import filter_user
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import timedelta
-from .auth_utils import hash_password, authenticate_user, create_token, get_current_user
+from .auth_utils import hash_password, authenticate_user, create_token
 import logging
 logger = logging.getLogger(__name__)
 

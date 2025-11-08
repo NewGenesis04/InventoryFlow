@@ -1,9 +1,8 @@
 from pydantic import BaseModel
 from pydantic import EmailStr
 from app.db.models import UserRole
-from typing import List, Optional, Literal
+from typing import Optional
 from datetime import datetime
-from pydantic import ConfigDict 
 
 class BaseAuth(BaseModel):
     email: EmailStr
