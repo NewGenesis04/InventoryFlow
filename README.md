@@ -2,9 +2,9 @@
 
 ## Table of Contents
 - [Overview](#overview)
-- [🌟 Features](#-features)
-- [⚙️ Technical Pros](#️-technical-pros)
-- [🔐 Roles & Permissions](#-roles--permissions)
+- [Features](#-features)
+- [Technical Pros](#️-technical-pros)
+- [Roles & Permissions](#-roles--permissions)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
