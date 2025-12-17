@@ -26,12 +26,12 @@ def get_stock_service(require_user: bool = False):
     return _get_service
 
 @router.get("/", response_model=List[StockSummary], status_code=status.HTTP_200_OK)
-async def get_all_stocks(service: StockService = Depends(get_stock_service(False))):
+async def get_all_stocks(service: StockService = Depends(get_stock_service(True))):
     logger.info("get all stocks endpoint called")
     return await service.get_all_stocks()
 
 @router.get("/{id}", response_model=StockResponse, status_code=status.HTTP_200_OK)
-async def get_stock_by_id(id: int, service: StockService = Depends(get_stock_service(False))):
+async def get_stock_by_id(id: int, service: StockService = Depends(get_stock_service(True))):
     logger.info("get stock by id endpoint called")
     return await service.get_stock_by_id(id)
 

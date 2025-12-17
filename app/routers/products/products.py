@@ -32,12 +32,12 @@ async def create_product(product: ProductCreate, service: ProductService = Depen
     return await service.create_product(product)
 
 @router.get("/{id}", response_model=ProductResponse, status_code=status.HTTP_200_OK)
-async def get_product_by_id(id: int, service: ProductService = Depends(get_product_service(False))):
+async def get_product_by_id(id: int, service: ProductService = Depends(get_product_service(True))):
     logger.info("get product by id endpoint called")
     return await service.get_product_by_id(id)
 
 @router.get("/", response_model=List[ProductSummary], status_code=status.HTTP_200_OK)
-async def get_all_products(service: ProductService = Depends(get_product_service(False))):
+async def get_all_products(service: ProductService = Depends(get_product_service(True))):
     logger.info("get all products endpoint called")
     return await service.get_all_products()
 

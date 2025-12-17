@@ -38,7 +38,7 @@ class Settings:
     PROJECT_DESCRIPTION: str = "InventoryFlow is a blazing-fast, API-first inventory management system that helps you organize stock, manage orders, and automate communication across your supply chain — all with clean code and a modular design."
 
     DATABASE_URL= os.getenv("DB_URL")
-    JWT_SECRET_KEY= os.getenv("JWT_SECRET_KEY", "def_jwt_secret_key_!(#)")
+    JWT_SECRET_KEY= os.getenv("JWT_SECRET_KEY")
     JWT_ALGORITHM= os.getenv("JWT_ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES= os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 5)
 

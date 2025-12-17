@@ -31,11 +31,11 @@ async def create_outgoing_order(order: OutgoingOrderCreate, service: OutgoingOrd
     return await service.create_outgoing_order(order)
 
 @router.get("/", response_model=List[OutgoingOrderSummary], status_code=status.HTTP_200_OK)
-async def get_all_outgoing_orders(service: OutgoingOrderService = Depends(get_outgoing_order_service(False))):
+async def get_all_outgoing_orders(service: OutgoingOrderService = Depends(get_outgoing_order_service(True))):
     logger.info("get all outgoing orders endpoint called")
     return await service.get_all_outgoing_orders()
 
 @router.get("/{id}", response_model=OutgoingOrderResponse, status_code=status.HTTP_200_OK)
-async def get_outgoing_order_by_id(id: int, service: OutgoingOrderService = Depends(get_outgoing_order_service(False))):
+async def get_outgoing_order_by_id(id: int, service: OutgoingOrderService = Depends(get_outgoing_order_service(True))):
     logger.info("get outgoing order by id endpoint called")
     return await service.get_outgoing_order_by_id(id)
