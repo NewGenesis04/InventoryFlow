@@ -2,8 +2,8 @@ from fastapi import HTTPException
 from sqlalchemy.future import select
 from typing import List
 from app.db.models import IncomingOrder, Product, Stock, Supplier, OrderStatusEnum
-from app.db.schemas import IncomingOrderCreate, IncomingOrderResponse, IncomingOrderSummary
-from app.services import BaseService
+from app.db.schemas import IncomingOrderCreate, IncomingOrderResponse, IncomingOrderSummary, IncomingOrderStatusUpdate
+from app.services.base import BaseService
 from sqlalchemy.orm import selectinload
 import logging
 
@@ -154,6 +154,9 @@ class IncomingOrderService(BaseService):
                 )
                 raise HTTPException(status_code=404, detail=f"Incoming order with id {order_id} not found")
             
+            if self.user.role == "supplier" and order.supplier.user_id != self.user.id:
+                raise HTTPException(status_code=403, detail="Not authorized to view this order")
+            
             logger.info(
                 "Incoming order retrieved",
                 extra={"extra_fields": {
@@ -170,6 +173,77 @@ class IncomingOrderService(BaseService):
         except Exception as e:
             logger.error(
                 "Error fetching incoming order",
+                extra={"extra_fields": {"order_id": order_id, "error": str(e)}}
+            )
+            raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    async def get_my_incoming_orders(self) -> List[IncomingOrderSummary]:
+        """
+        Retrieve all incoming orders for the current supplier.
+        """
+        try:
+            result = await self.db.execute(
+                select(Supplier).where(Supplier.user_id == self.user.id)
+            )
+            supplier = result.scalars().first()
+            if not supplier:
+                raise HTTPException(status_code=404, detail="Supplier profile not found for current user")
+
+            result = await self.db.execute(select(IncomingOrder).where(IncomingOrder.supplier_id == supplier.id))
+            orders = result.scalars().all()
+            if not orders:
+                raise HTTPException(status_code=404, detail="No incoming orders found for this supplier")
+            
+            return orders
+        
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(
+                "Error fetching incoming orders for supplier",
+                extra={"extra_fields": {"user_id": self.user.id, "error": str(e)}}
+            )
+            raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    async def update_incoming_order_status(self, order_id: int, status_update: IncomingOrderStatusUpdate) -> IncomingOrderResponse:
+        """
+        Update the status of an incoming order.
+        """
+        try:
+            result = await self.db.execute(
+                select(IncomingOrder)
+                .options(
+                    selectinload(IncomingOrder.supplier),
+                    selectinload(IncomingOrder.product)
+                )
+                .where(IncomingOrder.id == order_id)
+            )
+            order = result.scalars().first()
+            if not order:
+                raise HTTPException(status_code=404, detail=f"Incoming order with id {order_id} not found")
+
+            if self.user.role == "supplier" and order.supplier.user_id != self.user.id:
+                raise HTTPException(status_code=403, detail="Not authorized to update this order")
+
+            order.status = status_update.status
+            await self.db.commit()
+            await self.db.refresh(order)
+            
+            logger.info(
+                "Incoming order status updated",
+                extra={"extra_fields": {
+                    "order_id": order.id,
+                    "new_status": order.status
+                }}
+            )
+            return IncomingOrderResponse.model_validate(order)
+        
+        except HTTPException:
+            raise
+        except Exception as e:
+            await self.db.rollback()
+            logger.error(
+                "Error updating incoming order status",
                 extra={"extra_fields": {"order_id": order_id, "error": str(e)}}
             )
             raise HTTPException(status_code=500, detail="Internal Server Error")

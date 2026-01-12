@@ -8,6 +8,7 @@ dependencies = [
     "asyncpg>=0.30.0",
     "cloudinary>=1.44.1",
     "fastapi>=0.121.0",
+    "passlib>=1.7.4",
     "python-dotenv>=1.2.1",
     "python-jose>=3.5.0",
     "rich>=14.2.0",

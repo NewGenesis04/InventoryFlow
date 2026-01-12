@@ -3,7 +3,7 @@ from sqlalchemy.future import select
 from typing import List
 from app.db.models import OutgoingOrder, Product, Stock, Customer, OrderStatusEnum
 from app.db.schemas import OutgoingOrderCreate, OutgoingOrderResponse, OutgoingOrderSummary
-from app.services import BaseService
+from app.services.base import BaseService
 from sqlalchemy.orm import selectinload
 import logging
 
@@ -168,6 +168,9 @@ class OutgoingOrderService(BaseService):
                     extra={"extra_fields": {"order_id": order_id}}
                 )
                 raise HTTPException(status_code=404, detail=f"Outgoing order with id {order_id} not found")
+
+            if self.user.role == "customer" and order.customer.user_id != self.user.id:
+                raise HTTPException(status_code=403, detail="Not authorized to view this order")
             
             logger.info(
                 "Outgoing order retrieved",

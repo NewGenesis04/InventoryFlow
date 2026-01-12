@@ -4,6 +4,7 @@
 - [Overview](#overview)
 - [Features](#-features)
 - [Technical Pros](#️-technical-pros)
+- [Business Logic and User Interaction Flow](#-business-logic-and-user-interaction-flow)
 - [Roles & Permissions](#-roles--permissions)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
@@ -41,6 +42,78 @@ Built with scalability, security, and developer experience in mind, InventoryFlo
 - **Role-Based Access Control**: Implements user roles (e.g., admin, customer) to restrict access to sensitive operations.
 - **Structured Logging**: Utilizes a custom JSON formatter and the Rich library for clear, structured, and easy-to-parse application logs.
 
+## 📈 Business Logic and User Interaction Flow
+
+InventoryFlow is designed to model real-world inventory processes by defining clear roles and workflows for different user types. The core of the system revolves around the movement of products from suppliers to the warehouse (stock) and then out to customers.
+
+```mermaid
+graph LR
+    subgraph Admin
+        direction LR
+        A[Admin]
+    end
+
+    subgraph Staff
+        direction LR
+        S[Staff]
+    end
+
+    subgraph Customer
+        direction LR
+        C[Customer]
+    end
+
+    subgraph Supplier
+        direction LR
+        SU[Supplier]
+    end
+
+    A -- Manages all data & users --> System
+    S -- Manages inventory & orders --> System
+    C -- Places orders & views products --> System
+    SU -- Fulfills incoming orders --> System
+
+    System -- Provides comprehensive dashboards --> A
+    System -- Provides operational data --> S
+    System -- Shows product catalog & order history --> C
+    System -- Shows assigned orders & profile --> SU
+```
+
+### User Roles & Workflow
+
+1.  **Admin**:
+    -   **Role**: The superuser with complete oversight and control over the entire system.
+    -   **Interactions**: Admins can manage user accounts (create, update, delete), view system-wide dashboards with analytics, and perform any action available to other roles. They are responsible for system health and high-level management.
+
+2.  **Staff**:
+    -   **Role**: The primary operators of the inventory system.
+    -   **Interactions**: Staff members handle the day-to-day logistics. They are responsible for:
+        -   Creating and managing `products` and `categories`.
+        -   Recording `incoming orders` from suppliers, which adds to the `stock`.
+        -   Processing `outgoing orders` for customers, which deducts from the `stock`.
+        -   Managing `customer` and `supplier` records.
+        -   Monitoring inventory levels and operational dashboards.
+
+3.  **Customer**:
+    -   **Role**: The end-consumer who purchases products.
+    -   **Interactions**: Customers have a limited, focused view of the system. They can:
+        -   Browse the `product` catalog.
+        -   Place `outgoing orders` for products they wish to purchase.
+        -   View their own order history and profile.
+
+4.  **Supplier**:
+    -   **Role**: The entity that provides products to replenish the inventory.
+    -   **Interactions**: Suppliers interact with the system to manage their supply chain relationship. They can:
+        -   View their own profile information.
+        -   See the `incoming orders` that have been assigned to them.
+        -   Update the status of their assigned orders (e.g., from `pending` to `shipped`).
+
+### Core Logic Flow
+
+The central logic connects these roles. A `Staff` member creates an `Incoming Order` from a `Supplier`. When this order is fulfilled, a `Stock` record is created or updated. A `Customer` then places an `Outgoing Order`, which consumes from that `Stock`. The `Admin` can oversee this entire lifecycle, from supply to sale, through the dashboard.
+
+This model ensures a clear separation of duties and a logical flow of data that mirrors a real-world inventory management process.
+
 ## 🔐 Roles & Permissions
 
 | Role     | Capabilities                                                   |
@@ -48,6 +121,7 @@ Built with scalability, security, and developer experience in mind, InventoryFlo
 | Admin    | Full access to all endpoints and data                          |
 | Staff    | Manage inventory, suppliers, customers, and view dashboards    |
 | Customer | Limited access: view products, place orders                    |
+| Supplier | View own profile and incoming orders                           |
 
 
 
@@ -118,6 +192,7 @@ UV is the recommended way to install and manage InventoryFlow. It's faster and h
       uvicorn app.main:app --reload
       ```
     The API will be available at `http://localhost:8000`.
+    Interactive Swagger API docs would be available at `http://localhost:8000\docs`
 
 ### Environment Variables
 Create a `.env` file in the root directory and add the following variables:
@@ -159,7 +234,7 @@ No payload required.
 #### POST /auth/register
 **Description**: Registers a new user.
 
-**Request**:
+**Request**: `AuthRegister`
 ```json
 {
   "username": "johndoe",
@@ -167,30 +242,31 @@ No payload required.
   "last_name": "Doe",
   "email": "john.doe@example.com",
   "password": "strongpassword123",
-  "role": "admin"
+  "role": "customer",
+  "phone": "123-456-7890",
+  "address": "123 Main St"
 }
 ```
 
-**Response**:
+**Response**: `User`
 ```json
 {
   "id": 1,
   "username": "johndoe",
-  "email": "john.doe@example.com",
-  "role": "admin",
-  "created_at": "2023-10-27T10:00:00Z",
-  "updated_at": "2023-10-27T10:00:00Z"
+  "first_name": "John",
+  "last_name": "Doe",
+  "role": "customer",
+  "email": "john.doe@example.com"
 }
 ```
 
 **Errors**:
 - `400 Bad Request`: Email already registered.
-- `500 Internal Server Error`: Error creating new user.
 
 #### POST /auth/login
 **Description**: Authenticates a user and returns JWT tokens.
 
-**Request**:
+**Request**: `AuthLogin`
 ```json
 {
   "email": "john.doe@example.com",
@@ -198,7 +274,7 @@ No payload required.
 }
 ```
 
-**Response**:
+**Response**: `AuthResponse`
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -213,18 +289,15 @@ No payload required.
 #### GET /auth/me
 **Description**: Retrieves the profile of the currently authenticated user. (Requires authentication)
 
-**Request**:
-No payload required. Authorization header with bearer token is mandatory.
-
-**Response**:
+**Response**: `User`
 ```json
 {
   "id": 1,
   "username": "johndoe",
-  "email": "john.doe@example.com",
-  "role": "admin",
-  "created_at": "2023-10-27T10:00:00Z",
-  "updated_at": "2023-10-27T10:00:00Z"
+  "first_name": "John",
+  "last_name": "Doe",
+  "role": "customer",
+  "email": "john.doe@example.com"
 }
 ```
 
@@ -236,7 +309,7 @@ No payload required. Authorization header with bearer token is mandatory.
 #### POST /categories/create
 **Description**: Creates a new product category. (Admin role required)
 
-**Request**:
+**Request**: `CategoryCreate`
 ```json
 {
   "name": "Electronics",
@@ -244,7 +317,7 @@ No payload required. Authorization header with bearer token is mandatory.
 }
 ```
 
-**Response**:
+**Response**: `CategoryResponse`
 ```json
 {
   "id": 1,
@@ -255,18 +328,10 @@ No payload required. Authorization header with bearer token is mandatory.
 }
 ```
 
-**Errors**:
-- `401 Unauthorized`: Authentication required.
-- `403 Forbidden`: Insufficient permissions.
-- `500 Internal Server Error`: Failed to create the category.
-
 #### GET /categories/
-**Description**: Retrieves a list of all product categories.
+**Description**: Retrieves a list of all product categories. (Admin, Staff, Customer roles required)
 
-**Request**:
-No payload required.
-
-**Response**:
+**Response**: `List[CategoryResponse]`
 ```json
 [
   {
@@ -279,16 +344,10 @@ No payload required.
 ]
 ```
 
-**Errors**:
-- `500 Internal Server Error`: Failed to fetch categories.
-
 #### GET /categories/{category_id}
-**Description**: Retrieves a single category by its ID.
+**Description**: Retrieves a single category by its ID. (Admin, Staff, Customer roles required)
 
-**Request**:
-No payload required.
-
-**Response**:
+**Response**: `CategoryResponse`
 ```json
 {
   "id": 1,
@@ -299,14 +358,10 @@ No payload required.
 }
 ```
 
-**Errors**:
-- `404 Not Found`: Category not found.
-- `500 Internal Server Error`: Failed to fetch the category.
-
 #### PUT /categories/{category_id}
 **Description**: Updates an existing category. (Admin role required)
 
-**Request**:
+**Request**: `CategoryUpdate`
 ```json
 {
   "name": "Consumer Electronics",
@@ -314,7 +369,7 @@ No payload required.
 }
 ```
 
-**Response**:
+**Response**: `CategoryResponse`
 ```json
 {
   "id": 1,
@@ -325,38 +380,168 @@ No payload required.
 }
 ```
 
-**Errors**:
-- `401 Unauthorized`: Authentication required.
-- `403 Forbidden`: Insufficient permissions.
-- `404 Not Found`: Category not found.
-- `500 Internal Server Error`: Failed to update the category.
-
 #### DELETE /categories/{category_id}
 **Description**: Deletes a category by its ID. (Admin role required)
 
-**Request**:
-No payload required.
+**Response**: `202 Accepted`
 
-**Response**:
-`202 Accepted`
+---
+#### **Customer Management**
+---
+#### POST /customers/
+**Description**: Creates a new customer. (Admin role required)
+
+**Request**: `CustomerCreate`
 ```json
 {
-  "detail": "Category with ID (1) has been deleted successfully"
+  "user_id": 1,
+  "first_name": "Jane",
+  "last_name": "Doe",
+  "phone_number": "555-555-5555",
+  "address": "456 Oak Ave"
 }
 ```
 
-**Errors**:
-- `401 Unauthorized`: Authentication required.
-- `403 Forbidden`: Insufficient permissions.
-- `404 Not Found`: Category with the specified ID not found.
-- `500 Internal Server Error`: Failed to delete the category.
+**Response**: `CustomerResponse`
+```json
+{
+  "id": 1,
+  "user_id": 1,
+  "first_name": "Jane",
+  "last_name": "Doe",
+  "phone_number": "555-555-5555",
+  "address": "456 Oak Ave",
+  "created_at": "2023-10-27T10:00:00Z",
+  "updated_at": "2023-10-27T10:00:00Z"
+}
+```
 
+#### GET /customers/
+**Description**: Retrieves a list of all customers. (Admin, Staff roles required)
+
+**Response**: `List[CustomerSummary]`
+```json
+[
+  {
+    "id": 1,
+    "first_name": "Jane",
+    "last_name": "Doe"
+  }
+]
+```
+
+#### GET /customers/{customer_id}
+**Description**: Retrieves a single customer by ID. (Admin, Staff, Customer roles required)
+
+**Response**: `CustomerResponse`
+```json
+{
+  "id": 1,
+  "user_id": 1,
+  "first_name": "Jane",
+  "last_name": "Doe",
+  "phone_number": "555-555-5555",
+  "address": "456 Oak Ave",
+  "created_at": "2023-10-27T10:00:00Z",
+  "updated_at": "2023-10-27T10:00:00Z"
+}
+```
+
+#### PUT /customers/{customer_id}
+**Description**: Updates a customer by ID. (Admin role required)
+
+**Request**: `CustomerUpdate`
+```json
+{
+  "phone_number": "555-555-5556"
+}
+```
+
+**Response**: `CustomerResponse`
+```json
+{
+  "id": 1,
+  "user_id": 1,
+  "first_name": "Jane",
+  "last_name": "Doe",
+  "phone_number": "555-555-5556",
+  "address": "456 Oak Ave",
+  "created_at": "2023-10-27T10:00:00Z",
+  "updated_at": "2023-10-27T10:05:00Z"
+}
+```
+
+#### DELETE /customers/{customer_id}
+**Description**: Deletes a customer by ID. (Admin role required)
+
+**Response**: `204 No Content`
+
+---
+#### **Dashboard**
+---
+#### GET /dashboard/
+**Description**: Retrieves dashboard data. (Admin, Staff roles required)
+
+**Response**: `DashboardResponse`
+```json
+{
+  "user_overview": {
+    "total_users": 100,
+    "new_users_last_30_days": 5,
+    "user_role_distribution": {
+      "admin": 2,
+      "staff": 10,
+      "customer": 80,
+      "supplier": 8
+    }
+  },
+  "performance_metrics": {
+    "inventory": {
+      "total_products": 500,
+      "total_categories": 10,
+      "total_stock_quantity": 10000,
+      "inventory_value": 500000.00
+    },
+    "orders": {
+      "total_incoming_orders": 50,
+      "total_outgoing_orders": 200,
+      "total_incoming_value": 75000.00,
+      "total_outgoing_value": 120000.00
+    }
+  },
+  "recent_activity": {
+    "recent_outgoing_orders": [
+      {
+        "id": 1,
+        "customer_id": 1,
+        "product_id": 1,
+        "quantity": 2,
+        "total_price": 2400,
+        "status": "completed",
+        "order_date": "2023-10-27T11:00:00Z"
+      }
+    ],
+    "recent_user_registrations": [
+      {
+        "id": 1,
+        "username": "johndoe",
+        "first_name": "John",
+        "last_name": "Doe",
+        "role": "customer",
+        "email": "john.doe@example.com"
+      }
+    ]
+  }
+}
+```
+
+---
 #### **Product Management**
 ---
 #### POST /products/create
 **Description**: Creates a new product. (Admin role required)
 
-**Request**:
+**Request**: `ProductCreate`
 ```json
 {
   "name": "Laptop Pro",
@@ -366,84 +551,58 @@ No payload required.
 }
 ```
 
-**Response**:
+**Response**: `ProductResponse`
 ```json
 {
   "id": 1,
   "name": "Laptop Pro",
   "description": "A high-end laptop",
   "price": 1200,
-  "category_id": 1,
-  "created_at": "2023-10-27T10:10:00Z",
-  "updated_at": "2023-10-27T10:10:00Z",
   "category": {
     "id": 1,
-    "name": "Electronics",
-    "description": "Gadgets and electronic devices"
-  }
+    "name": "Electronics"
+   },
+  "created_at": "2023-10-27T10:10:00Z",
+  "updated_at": "2023-10-27T10:10:00Z"
 }
 ```
 
-**Errors**:
-- `400 Bad Request`: Product with the same name already exists.
-- `401 Unauthorized`: Authentication required.
-- `403 Forbidden`: Insufficient permissions.
-- `500 Internal Server Error`: Error in creating product.
-
 #### GET /products/
-**Description**: Retrieves a list of all products.
+**Description**: Retrieves a list of all products. (Admin, Staff, Customer, Supplier roles required)
 
-**Request**:
-No payload required.
-
-**Response**:
+**Response**: `List[ProductSummary]`
 ```json
 [
   {
     "id": 1,
-    "name": "Laptop Pro",
-    "price": 1200,
-    "category_id": 1
+    "name": "Laptop Pro"
   }
 ]
 ```
 
-**Errors**:
-- `400 Bad Request`: No products found.
-- `500 Internal Server Error`: Failed to fetch products.
-
 #### GET /products/{id}
-**Description**: Retrieves a single product by its ID.
+**Description**: Retrieves a single product by its ID. (Admin, Staff, Customer, Supplier roles required)
 
-**Request**:
-No payload required.
-
-**Response**:
+**Response**: `ProductResponse`
 ```json
 {
   "id": 1,
   "name": "Laptop Pro",
   "description": "A high-end laptop",
   "price": 1200,
-  "category_id": 1,
-  "created_at": "2023-10-27T10:10:00Z",
-  "updated_at": "2023-10-27T10:10:00Z",
   "category": {
     "id": 1,
-    "name": "Electronics",
-    "description": "Gadgets and electronic devices"
-  }
+    "name": "Electronics"
+   },
+  "created_at": "2023-10-27T10:10:00Z",
+  "updated_at": "2023-10-27T10:10:00Z"
 }
 ```
-
-**Errors**:
-- `400 Bad Request`: No product with the specified ID found.
-- `500 Internal Server Error`: Failed to fetch product.
 
 #### PUT /products/{id}
 **Description**: Updates an existing product. (Admin role required)
 
-**Request**:
+**Request**: `ProductUpdate`
 ```json
 {
   "price": 1150,
@@ -451,142 +610,95 @@ No payload required.
 }
 ```
 
-**Response**:
+**Response**: `ProductResponse`
 ```json
 {
   "id": 1,
   "name": "Laptop Pro",
   "description": "An updated high-end laptop",
   "price": 1150,
-  "category_id": 1,
-  "created_at": "2023-10-27T10:10:00Z",
-  "updated_at": "2023-10-27T10:15:00Z",
   "category": {
     "id": 1,
-    "name": "Electronics",
-    "description": "Gadgets and electronic devices"
-  }
+    "name": "Electronics"
+   },
+  "created_at": "2023-10-27T10:10:00Z",
+  "updated_at": "2023-10-27T10:15:00Z"
 }
 ```
-
-**Errors**:
-- `400 Bad Request`: No product with the specified ID found.
-- `401 Unauthorized`: Authentication required.
-- `403 Forbidden`: Insufficient permissions.
-- `500 Internal Server Error`: Failed to update product.
 
 #### DELETE /products/{id}
 **Description**: Deletes a product by its ID. (Admin role required)
 
-**Request**:
-No payload required.
+**Response**: `202 Accepted`
 
-**Response**:
-`202 Accepted`
-```json
-{
-  "detail": "Product with ID (1) has been deleted successfully"
-}
-```
-
-**Errors**:
-- `400 Bad Request`: No product with the specified ID found.
-- `401 Unauthorized`: Authentication required.
-- `403 Forbidden`: Insufficient permissions.
-- `500 Internal Server Error`: Failed to delete product.
-
+---
 #### **Stock Management**
 ---
 #### GET /stocks/
-**Description**: Retrieves a list of all stock entries.
+**Description**: Retrieves a list of all stock entries. (Admin, Staff roles required)
 
-**Request**:
-No payload required.
-
-**Response**:
+**Response**: `List[StockSummary]`
 ```json
 [
   {
     "id": 1,
-    "product_id": 1,
-    "available_quantity": 50,
-    "batch_number": "BATCH001"
+    "available_quantity": 50
   }
 ]
 ```
 
-**Errors**:
-- `404 Not Found`: No stock entries found.
-- `500 Internal Server Error`: Failed to fetch stock entries.
-
 #### GET /stocks/{id}
-**Description**: Retrieves a specific stock entry by its ID.
+**Description**: Retrieves a specific stock entry by its ID. (Admin, Staff roles required)
 
-**Request**:
-No payload required.
-
-**Response**:
+**Response**: `StockResponse`
 ```json
 {
   "id": 1,
-  "product_id": 1,
-  "available_quantity": 50,
-  "batch_number": "BATCH001",
-  "expiry_date": "2025-12-31T00:00:00Z",
-  "created_at": "2023-10-27T10:20:00Z",
-  "updated_at": "2023-10-27T10:20:00Z",
   "product": {
     "id": 1,
-    "name": "Laptop Pro",
-    "price": 1200
-  }
+    "name": "Laptop Pro"
+  },
+  "batch_number": "BATCH001",
+  "available_quantity": 50,
+  "expiry_date": "2025-12-31T00:00:00Z",
+  "created_at": "2023-10-27T10:20:00Z",
+  "updated_at": "2023-10-27T10:20:00Z"
 }
 ```
 
-**Errors**:
-- `404 Not Found`: Stock with the specified ID not found.
-- `500 Internal Server Error`: Failed to fetch stock entry.
-
 #### PATCH /stocks/{id}
-**Description**: Manually updates the quantity of a stock entry. (Admin role required)
+**Description**: Manually updates the quantity of a stock entry. (Admin, Staff roles required)
 
-**Request**:
+**Request**: `StockUpdate`
 ```json
 {
   "available_quantity": 45
 }
 ```
 
-**Response**:
+**Response**: `StockResponse`
 ```json
 {
   "id": 1,
-  "product_id": 1,
-  "available_quantity": 45,
-  "batch_number": "BATCH001",
-  "expiry_date": "2025-12-31T00:00:00Z",
-  "created_at": "2023-10-27T10:20:00Z",
-  "updated_at": "2023-10-27T10:25:00Z",
   "product": {
     "id": 1,
-    "name": "Laptop Pro",
-    "price": 1200
-  }
+    "name": "Laptop Pro"
+  },
+  "batch_number": "BATCH001",
+  "available_quantity": 45,
+  "expiry_date": "2025-12-31T00:00:00Z",
+  "created_at": "2023-10-27T10:20:00Z",
+  "updated_at": "2023-10-27T10:25:00Z"
 }
 ```
 
-**Errors**:
-- `401 Unauthorized`: Authentication required.
-- `403 Forbidden`: Insufficient permissions.
-- `404 Not Found`: Stock with the specified ID not found.
-- `500 Internal Server Error`: Failed to update stock entry.
-
+---
 #### **Incoming Order Management**
 ---
 #### POST /incoming/
-**Description**: Creates a new incoming order from a supplier and updates stock. (Admin role required)
+**Description**: Creates a new incoming order from a supplier and updates stock. (Admin, Staff roles required)
 
-**Request**:
+**Request**: `IncomingOrderCreate`
 ```json
 {
   "supplier_id": 1,
@@ -599,86 +711,133 @@ No payload required.
 }
 ```
 
-**Response**:
+**Response**: `IncomingOrderResponse`
 ```json
 {
   "id": 1,
-  "supplier_id": 1,
-  "product_id": 1,
+  "supplier": {
+    "id": 1,
+    "name": "Supplier A"
+  },
+  "product": {
+    "id": 1,
+    "name": "Laptop Pro"
+  },
   "batch_number": "BATCH001",
   "quantity": 50,
   "unit_cost": 800,
   "total_cost": 40000,
-  "supply_date": "2023-10-27T10:20:00Z",
   "status": "pending",
-  "supplier": { "id": 1, "name": "Supplier A" },
-  "product": { "id": 1, "name": "Laptop Pro" }
+  "supply_date": "2023-10-27T10:20:00Z",
+  "created_at": "2023-10-27T10:20:00Z",
+  "updated_at": "2023-10-27T10:20:00Z"
 }
 ```
 
-**Errors**:
-- `401 Unauthorized`: Authentication required.
-- `403 Forbidden`: Insufficient permissions.
-- `404 Not Found`: Product or Supplier not found.
-- `500 Internal Server Error`: Failed to create incoming order.
-
 #### GET /incoming/
-**Description**: Retrieves a list of all incoming orders.
+**Description**: Retrieves a list of all incoming orders. (Admin, Staff roles required)
 
-**Request**:
-No payload required.
-
-**Response**:
+**Response**: `List[IncomingOrderSummary]`
 ```json
 [
   {
     "id": 1,
     "supplier_id": 1,
     "product_id": 1,
+    "batch_number": "BATCH001",
     "quantity": 50,
     "total_cost": 40000,
-    "status": "pending"
+    "status": "pending",
+    "supply_date": "2023-10-27T10:20:00Z"
   }
 ]
 ```
 
-**Errors**:
-- `404 Not Found`: No incoming orders found.
-- `500 Internal Server Error`: Failed to fetch incoming orders.
-
 #### GET /incoming/{id}
-**Description**: Retrieves a specific incoming order by its ID.
+**Description**: Retrieves a specific incoming order by its ID. (Admin, Staff, Supplier roles required)
 
-**Request**:
-No payload required.
-
-**Response**:
+**Response**: `IncomingOrderResponse`
 ```json
 {
   "id": 1,
-  "supplier_id": 1,
-  "product_id": 1,
+  "supplier": {
+    "id": 1,
+    "name": "Supplier A"
+  },
+  "product": {
+    "id": 1,
+    "name": "Laptop Pro"
+  },
   "batch_number": "BATCH001",
   "quantity": 50,
   "unit_cost": 800,
   "total_cost": 40000,
-  "supply_date": "2023-10-27T10:20:00Z",
   "status": "pending",
-  "supplier": { "id": 1, "name": "Supplier A" },
-  "product": { "id": 1, "name": "Laptop Pro" }
+  "supply_date": "2023-10-27T10:20:00Z",
+  "created_at": "2023-10-27T10:20:00Z",
+  "updated_at": "2023-10-27T10:20:00Z"
 }
 ```
 
-**Errors**:
-- `404 Not Found`: Incoming order with the specified ID not found.
-- `500 Internal Server Error`: Failed to fetch incoming order.
+#### GET /incoming/me
+**Description**: Retrieves all incoming orders for the current supplier. (Supplier role required)
 
+**Response**: `List[IncomingOrderSummary]`
+```json
+[
+  {
+    "id": 1,
+    "supplier_id": 1,
+    "product_id": 1,
+    "batch_number": "BATCH001",
+    "quantity": 50,
+    "total_cost": 40000,
+    "status": "pending",
+    "supply_date": "2023-10-27T10:20:00Z"
+  }
+]
+```
+
+#### PATCH /incoming/{id}
+**Description**: Updates the status of an incoming order. (Admin, Staff, Supplier roles required)
+
+**Request**: `IncomingOrderStatusUpdate`
+```json
+{
+  "status": "completed"
+}
+```
+
+**Response**: `IncomingOrderResponse`
+```json
+{
+  "id": 1,
+  "supplier": {
+    "id": 1,
+    "name": "Supplier A"
+  },
+  "product": {
+    "id": 1,
+    "name": "Laptop Pro"
+  },
+  "batch_number": "BATCH001",
+  "quantity": 50,
+  "unit_cost": 800,
+  "total_cost": 40000,
+  "status": "completed",
+  "supply_date": "2023-10-27T10:20:00Z",
+  "created_at": "2023-10-27T10:20:00Z",
+  "updated_at": "2023-10-27T10:25:00Z"
+}
+```
+
+---
 #### **Outgoing Order Management**
 ---
 #### POST /outgoing/
-**Description**: Creates a new outgoing order for a customer and decreases stock. (Admin role required)
+**Description**: Creates a new outgoing order for a customer and decreases stock. (Admin, Staff, Customer roles required)
 
-**Request**:
+**Request**: `OutgoingOrderCreate`
 ```json
 {
   "customer_id": 1,
@@ -689,37 +848,33 @@ No payload required.
 }
 ```
 
-**Response**:
+**Response**: `OutgoingOrderResponse`
 ```json
 {
   "id": 1,
-  "customer_id": 1,
-  "product_id": 1,
-  "stock_id": 1,
+  "customer": {
+    "id": 1,
+    "first_name": "Jane",
+    "last_name": "Doe"
+  },
+  "product": {
+    "id": 1,
+    "name": "Laptop Pro"
+  },
   "quantity": 2,
   "unit_price": 1200,
   "total_price": 2400,
-  "order_date": "2023-10-27T11:00:00Z",
   "status": "pending",
-  "customer": { "id": 1, "first_name": "Jane", "last_name": "Smith" },
-  "product": { "id": 1, "name": "Laptop Pro" }
+  "order_date": "2023-10-27T11:00:00Z",
+  "created_at": "2023-10-27T11:00:00Z",
+  "updated_at": "2023-10-27T11:00:00Z"
 }
 ```
 
-**Errors**:
-- `400 Bad Request`: Insufficient stock.
-- `401 Unauthorized`: Authentication required.
-- `403 Forbidden`: Insufficient permissions.
-- `404 Not Found`: Stock, Product, or Customer not found.
-- `500 Internal Server Error`: Failed to create outgoing order.
-
 #### GET /outgoing/
-**Description**: Retrieves a list of all outgoing orders.
+**Description**: Retrieves a list of all outgoing orders. (Admin, Staff roles required)
 
-**Request**:
-No payload required.
-
-**Response**:
+**Response**: `List[OutgoingOrderSummary]`
 ```json
 [
   {
@@ -728,41 +883,148 @@ No payload required.
     "product_id": 1,
     "quantity": 2,
     "total_price": 2400,
-    "status": "pending"
+    "status": "pending",
+    "order_date": "2023-10-27T11:00:00Z"
   }
 ]
 ```
 
-**Errors**:
-- `404 Not Found`: No outgoing orders found.
-- `500 Internal Server Error`: Failed to fetch outgoing orders.
-
 #### GET /outgoing/{id}
-**Description**: Retrieves a specific outgoing order by its ID.
+**Description**: Retrieves a specific outgoing order by its ID. (Admin, Staff, Customer roles required)
 
-**Request**:
-No payload required.
-
-**Response**:
+**Response**: `OutgoingOrderResponse`
 ```json
 {
   "id": 1,
-  "customer_id": 1,
-  "product_id": 1,
-  "stock_id": 1,
+  "customer": {
+    "id": 1,
+    "first_name": "Jane",
+    "last_name": "Doe"
+  },
+  "product": {
+    "id": 1,
+    "name": "Laptop Pro"
+  },
   "quantity": 2,
   "unit_price": 1200,
   "total_price": 2400,
-  "order_date": "2023-10-27T11:00:00Z",
   "status": "pending",
-  "customer": { "id": 1, "first_name": "Jane", "last_name": "Smith" },
-  "product": { "id": 1, "name": "Laptop Pro" }
+  "order_date": "2023-10-27T11:00:00Z",
+  "created_at": "2023-10-27T11:00:00Z",
+  "updated_at": "2023-10-27T11:00:00Z"
 }
 ```
 
-**Errors**:
-- `404 Not Found`: Outgoing order with the specified ID not found.
-- `500 Internal Server Error`: Failed to fetch outgoing order.
+---
+#### **Supplier Management**
+---
+#### POST /suppliers/
+**Description**: Creates a new supplier. (Admin role required)
+
+**Request**: `SupplierCreate`
+```json
+{
+  "user_id": 2,
+  "name": "Supplier B",
+  "phone_number": "111-222-3333",
+  "email": "supplier.b@example.com",
+  "address": "789 Pine St"
+}
+```
+
+**Response**: `SupplierResponse`
+```json
+{
+  "id": 2,
+  "user_id": 2,
+  "name": "Supplier B",
+  "phone_number": "111-222-3333",
+  "email": "supplier.b@example.com",
+  "address": "789 Pine St",
+  "created_at": "2023-10-27T10:00:00Z",
+  "updated_at": "2023-10-27T10:00:00Z"
+}
+```
+
+#### GET /suppliers/
+**Description**: Retrieves a list of all suppliers. (Admin, Staff roles required)
+
+**Response**: `List[SupplierSummary]`
+```json
+[
+  {
+    "id": 1,
+    "name": "Supplier A"
+  },
+  {
+    "id": 2,
+    "name": "Supplier B"
+  }
+]
+```
+
+#### GET /suppliers/me
+**Description**: Retrieves the profile of the current supplier. (Supplier role required)
+
+**Response**: `SupplierResponse`
+```json
+{
+  "id": 1,
+  "user_id": 1,
+  "name": "Supplier A",
+  "phone_number": "123-456-7890",
+  "email": "supplier.a@example.com",
+  "address": "123 Maple St",
+  "created_at": "2023-10-27T10:00:00Z",
+  "updated_at": "2023-10-27T10:00:00Z"
+}
+```
+
+#### GET /suppliers/{supplier_id}
+**Description**: Retrieves a supplier by ID. (Admin, Staff roles required)
+
+**Response**: `SupplierResponse`
+```json
+{
+  "id": 1,
+  "user_id": 1,
+  "name": "Supplier A",
+  "phone_number": "123-456-7890",
+  "email": "supplier.a@example.com",
+  "address": "123 Maple St",
+  "created_at": "2023-10-27T10:00:00Z",
+  "updated_at": "2023-10-27T10:00:00Z"
+}
+```
+
+#### PUT /suppliers/{supplier_id}
+**Description**: Updates a supplier by ID. (Admin role required)
+
+**Request**: `SupplierUpdate`
+```json
+{
+  "phone_number": "123-456-7891"
+}
+```
+
+**Response**: `SupplierResponse`
+```json
+{
+  "id": 1,
+  "user_id": 1,
+  "name": "Supplier A",
+  "phone_number": "123-456-7891",
+  "email": "supplier.a@example.com",
+  "address": "123 Maple St",
+  "created_at": "2023-10-27T10:00:00Z",
+  "updated_at": "2023-10-27T10:05:00Z"
+}
+```
+
+#### DELETE /suppliers/{supplier_id}
+**Description**: Deletes a supplier by ID. (Admin role required)
+
+**Response**: `204 No Content`
 
 ## Complaints & Feature Requests
 

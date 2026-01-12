@@ -24,9 +24,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def verify_access_token(token: HTTPAuthorizationCredentials = Depends(http_scheme)) -> dict:
     try:
-        payload = jwt.decode(token.credentials, settings.JWT_SECRET_KEY,
+        return jwt.decode(token.credentials, settings.JWT_SECRET_KEY,
                              algorithms=[settings.JWT_ALGORITHM])
-        return payload
+        
     except JWTError as e:
         logger.error(f"Invalid token: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -71,7 +71,7 @@ async def get_current_user(token: HTTPAuthorizationCredentials = Depends(http_sc
         logger.error(f"JWT Error: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
 
-def role_required(required_roles: List[str]) -> bool:
+def role_required(required_roles: List[str]):
     def role_checker(current_user: schemas.User = Depends(get_current_user)):
         if current_user.role not in required_roles:
             logger.warning(f"User {current_user.username} does not have the required role(s): {required_roles}")

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from pydantic import EmailStr
 from app.db.models import UserRole
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 class BaseAuth(BaseModel):
@@ -232,6 +232,10 @@ class IncomingOrderSummary(BaseModel):
     class Config:
         from_attributes = True
 
+class IncomingOrderStatusUpdate(BaseModel):
+    status: str
+
+
 #  OutgoingOrder Schemas
 
 class OutgoingOrderCreate(BaseModel):
@@ -267,3 +271,41 @@ class OutgoingOrderSummary(BaseModel):
 
     class Config:
         from_attributes = True
+
+# Dashboard Schemas
+
+class UserRoleDistribution(BaseModel):
+    admin: int
+    staff: int
+    customer: int
+    supplier: int
+
+class UserOverview(BaseModel):
+    total_users: int
+    new_users_last_30_days: int
+    user_role_distribution: UserRoleDistribution
+
+class InventoryKPIs(BaseModel):
+    total_products: int
+    total_categories: int
+    total_stock_quantity: int
+    inventory_value: float
+
+class OrderKPIs(BaseModel):
+    total_incoming_orders: int
+    total_outgoing_orders: int
+    total_incoming_value: float
+    total_outgoing_value: float
+
+class PerformanceMetrics(BaseModel):
+    inventory: InventoryKPIs
+    orders: OrderKPIs
+
+class RecentActivity(BaseModel):
+    recent_outgoing_orders: List[OutgoingOrderSummary]
+    recent_user_registrations: List[User]
+
+class DashboardResponse(BaseModel):
+    user_overview: UserOverview
+    performance_metrics: PerformanceMetrics
+    recent_activity: RecentActivity

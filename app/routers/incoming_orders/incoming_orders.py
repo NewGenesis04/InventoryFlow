@@ -7,11 +7,12 @@ from app.db.schemas import (
     IncomingOrderResponse,
     IncomingOrderSummary,
     User,
+    IncomingOrderStatusUpdate,
 )
 from app.db.database import get_db
 from app.db.models import UserRole
 from app.auth.auth_utils import get_current_user, role_required
-from app.services import IncomingOrderService
+from app.services.incoming_orders_service import IncomingOrderService
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ def get_incoming_order_service(require_user: bool = False):
 async def create_incoming_order(
     order: IncomingOrderCreate,
     service: IncomingOrderService = Depends(get_incoming_order_service(True)),
-    has_permissions: bool = Depends(role_required([UserRole.admin])),
+    has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff])),
 ):
     logger.info("create incoming order endpoint called")
     return await service.create_incoming_order(order)
@@ -51,6 +52,7 @@ async def create_incoming_order(
 )
 async def get_all_incoming_orders(
     service: IncomingOrderService = Depends(get_incoming_order_service(True)),
+    has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff])),
 ):
     logger.info("get all incoming orders endpoint called")
     return await service.get_all_incoming_orders()
@@ -60,7 +62,31 @@ async def get_all_incoming_orders(
     "/{id}", response_model=IncomingOrderResponse, status_code=status.HTTP_200_OK
 )
 async def get_incoming_order_by_id(
-    id: int, service: IncomingOrderService = Depends(get_incoming_order_service(True))
+    id: int,
+    service: IncomingOrderService = Depends(get_incoming_order_service(True)),
+    has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff, UserRole.supplier])),
 ):
     logger.info("get incoming order by id endpoint called")
     return await service.get_incoming_order_by_id(id)
+
+@router.get(
+    "/me", response_model=List[IncomingOrderSummary], status_code=status.HTTP_200_OK
+)
+async def get_my_incoming_orders(
+    service: IncomingOrderService = Depends(get_incoming_order_service(True)),
+    has_permissions: bool = Depends(role_required([UserRole.supplier])),
+):
+    logger.info("get my incoming orders endpoint called")
+    return await service.get_my_incoming_orders()
+
+@router.patch(
+    "/{id}", response_model=IncomingOrderResponse, status_code=status.HTTP_200_OK
+)
+async def update_incoming_order_status(
+    id: int,
+    status_update: IncomingOrderStatusUpdate,
+    service: IncomingOrderService = Depends(get_incoming_order_service(True)),
+    has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff, UserRole.supplier])),
+):
+    logger.info(f"update incoming order status endpoint called for order {id}")
+    return await service.update_incoming_order_status(id, status_update)

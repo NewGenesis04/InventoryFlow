@@ -6,7 +6,7 @@ from app.db.schemas import OutgoingOrderCreate, OutgoingOrderResponse, OutgoingO
 from app.db.database import get_db
 from app.db.models import UserRole
 from app.auth.auth_utils import get_current_user, role_required
-from app.services import OutgoingOrderService
+from app.services.outgoing_order_service import OutgoingOrderService
 
 logger = logging.getLogger(__name__)
 
@@ -26,16 +26,16 @@ def get_outgoing_order_service(require_user: bool = False):
     return _get_service
 
 @router.post("/", response_model=OutgoingOrderResponse, status_code=status.HTTP_201_CREATED)
-async def create_outgoing_order(order: OutgoingOrderCreate, service: OutgoingOrderService = Depends(get_outgoing_order_service(True)), has_permissions: bool = Depends(role_required([UserRole.admin]))):
+async def create_outgoing_order(order: OutgoingOrderCreate, service: OutgoingOrderService = Depends(get_outgoing_order_service(True)), has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff, UserRole.customer]))):
     logger.info("create outgoing order endpoint called")
     return await service.create_outgoing_order(order)
 
 @router.get("/", response_model=List[OutgoingOrderSummary], status_code=status.HTTP_200_OK)
-async def get_all_outgoing_orders(service: OutgoingOrderService = Depends(get_outgoing_order_service(True))):
+async def get_all_outgoing_orders(service: OutgoingOrderService = Depends(get_outgoing_order_service(True)), has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff]))):
     logger.info("get all outgoing orders endpoint called")
     return await service.get_all_outgoing_orders()
 
 @router.get("/{id}", response_model=OutgoingOrderResponse, status_code=status.HTTP_200_OK)
-async def get_outgoing_order_by_id(id: int, service: OutgoingOrderService = Depends(get_outgoing_order_service(True))):
+async def get_outgoing_order_by_id(id: int, service: OutgoingOrderService = Depends(get_outgoing_order_service(True)), has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff, UserRole.customer]))):
     logger.info("get outgoing order by id endpoint called")
     return await service.get_outgoing_order_by_id(id)

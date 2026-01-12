@@ -6,6 +6,7 @@ fastapi-env/
 env/
 
 WARP.md
+GEMINI.md
 
 # Python cache files
 **/__pycache__/
