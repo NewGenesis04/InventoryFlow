@@ -34,7 +34,7 @@ class JsonFormatter(logging.Formatter):
 
 class Settings:
     PROJECT_NAME: str = "InventoryFlow API"
-    PROJECT_VERSION: str = "0.0.1"
+    PROJECT_VERSION: str = "0.1.1"
     PROJECT_DESCRIPTION: str = "InventoryFlow is a blazing-fast, API-first inventory management system that helps you organize stock, manage orders, and automate communication across your supply chain — all with clean code and a modular design."
 
     DATABASE_URL= os.getenv("DB_URL")

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from pydantic import EmailStr
 from app.db.models import UserRole
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import datetime
 
 class BaseAuth(BaseModel):
@@ -309,3 +309,14 @@ class DashboardResponse(BaseModel):
     user_overview: UserOverview
     performance_metrics: PerformanceMetrics
     recent_activity: RecentActivity
+
+class Cursor(BaseModel):
+    next: Optional[str] = None
+    prev: Optional[str] = None
+
+class PaginatedResponse(BaseModel):
+    data: List[Any]
+    cursor: Cursor
+
+    class Config:
+        from_attributes = True
