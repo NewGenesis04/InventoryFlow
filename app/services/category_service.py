@@ -1,9 +1,10 @@
 from fastapi import HTTPException
 from sqlalchemy.future import select
-from typing import List
+from typing import Optional
 from app.db.models import Category
-from app.db.schemas import CategoryCreate, CategoryResponse
+from app.db.schemas import CategoryCreate, CategoryResponse, PaginatedResponse
 from app.services.base import BaseService
+from app.utils import paginate
 import logging
                            
 logger = logging.getLogger(__name__)
@@ -38,15 +39,26 @@ class CategoryService(BaseService):
             logger.error(f"Error occurred while fetching category: {str(e)}")
             raise HTTPException(status_code=500, detail="Internal Server Error")
         
-    async def get_all_categories(self) -> List[CategoryResponse]:
+    async def get_all_categories(self, limit: int, after: Optional[str] = None, before: Optional[str] = None) -> PaginatedResponse[CategoryResponse]:
         try:
             logger.info("Fetching all categories")
-            result = await self.db.execute(select(Category))
-            categories = result.scalars().all()
-            logger.info(f"Total categories fetched: {len(categories)}")
-            return categories
+            paginated_categories = await paginate(
+                db=self.db,
+                model=Category,
+                limit=limit,
+                after=after,
+                before=before
+            )
+            if not paginated_categories.data:
+                logger.warning("No categories found in database")
+                raise HTTPException(status_code=404, detail="No categories found")
+
+            logger.info(f"Total categories returned: {len(paginated_categories.data)}")
+            return paginated_categories
         except Exception as e:
             logger.error(f"Error occurred while fetching categories: {str(e)}")
+            if isinstance(e, HTTPException):
+                raise e
             raise HTTPException(status_code=500, detail="Internal Server Error")
         
     async def update_category(self, category_id: int, category_data: CategoryCreate) -> CategoryResponse:

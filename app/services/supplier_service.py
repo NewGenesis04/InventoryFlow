@@ -1,10 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.base import BaseService
 from app.db.models import Supplier, UserRole
-from app.db.schemas import SupplierCreate, SupplierUpdate
+from app.db.schemas import SupplierCreate, SupplierUpdate, PaginatedResponse, SupplierSummary
 from sqlalchemy.future import select
 from fastapi import HTTPException, status
-from typing import List
+from typing import List, Optional
+from app.utils import paginate
 
 class SupplierService(BaseService):
     async def create_supplier(self, supplier_data: SupplierCreate) -> Supplier:
@@ -14,9 +15,17 @@ class SupplierService(BaseService):
         await self.db.refresh(supplier)
         return supplier
 
-    async def get_all_suppliers(self) -> List[Supplier]:
-        result = await self.db.execute(select(Supplier))
-        return result.scalars().all()
+    async def get_all_suppliers(self, limit: int, after: Optional[str] = None, before: Optional[str] = None) -> PaginatedResponse[SupplierSummary]:
+        paginated_suppliers = await paginate(
+            db=self.db,
+            model=Supplier,
+            limit=limit,
+            after=after,
+            before=before
+        )
+        if not paginated_suppliers.data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No suppliers found")
+        return paginated_suppliers
 
     async def get_supplier_by_id(self, supplier_id: int) -> Supplier:
         supplier = await self.db.get(Supplier, supplier_id)

@@ -1,9 +1,9 @@
 from app.services.base import BaseService
 from app.db.models import Customer, UserRole
-from app.db.schemas import CustomerCreate, CustomerUpdate
-from sqlalchemy.future import select
+from app.db.schemas import CustomerCreate, CustomerUpdate, PaginatedResponse, CustomerSummary
 from fastapi import HTTPException, status
-from typing import List
+from typing import Optional
+from app.utils import paginate
 
 class CustomerService(BaseService):
     async def create_customer(self, customer_data: CustomerCreate) -> Customer:
@@ -13,9 +13,17 @@ class CustomerService(BaseService):
         await self.db.refresh(customer)
         return customer
 
-    async def get_all_customers(self) -> List[Customer]:
-        result = await self.db.execute(select(Customer))
-        return result.scalars().all()
+    async def get_all_customers(self, limit: int, after: Optional[str] = None, before: Optional[str] = None) -> PaginatedResponse[CustomerSummary]:
+        paginated_customers = await paginate(
+            db=self.db,
+            model=Customer,
+            limit=limit,
+            after=after,
+            before=before
+        )
+        if not paginated_customers.data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No customers found")
+        return paginated_customers
 
     async def get_customer_by_id(self, customer_id: int) -> Customer:
         customer = await self.db.get(Customer, customer_id)

@@ -1,9 +1,10 @@
 from fastapi import HTTPException
 from sqlalchemy.future import select
-from typing import List
+from typing import List, Optional
 from app.db.models import IncomingOrder, Product, Stock, Supplier, OrderStatusEnum
-from app.db.schemas import IncomingOrderCreate, IncomingOrderResponse, IncomingOrderSummary, IncomingOrderStatusUpdate
+from app.db.schemas import IncomingOrderCreate, IncomingOrderResponse, IncomingOrderSummary, IncomingOrderStatusUpdate, PaginatedResponse
 from app.services.base import BaseService
+from app.utils import paginate
 from sqlalchemy.orm import selectinload
 import logging
 
@@ -107,22 +108,27 @@ class IncomingOrderService(BaseService):
             await self.db.rollback()
             raise HTTPException(status_code=500, detail="Internal Server Error")
     
-    async def get_all_incoming_orders(self) -> List[IncomingOrderSummary]:
+    async def get_all_incoming_orders(self, limit: int, after: Optional[str] = None, before: Optional[str] = None) -> PaginatedResponse[IncomingOrderSummary]:
         """
         Retrieve all incoming orders.
         """
         try:
-            result = await self.db.execute(select(IncomingOrder))
-            orders = result.scalars().all()
-            if not orders:
+            paginated_orders = await paginate(
+                db=self.db,
+                model=IncomingOrder,
+                limit=limit,
+                after=after,
+                before=before
+            )
+            if not paginated_orders.data:
                 logger.warning("No incoming orders found in database")
                 raise HTTPException(status_code=404, detail="No incoming orders found")
             
             logger.info(
                 "Incoming orders retrieved",
-                extra={"extra_fields": {"total_orders": len(orders)}}
+                extra={"extra_fields": {"total_orders": len(paginated_orders.data)}}
             )
-            return orders
+            return paginated_orders
         
         except HTTPException:
             raise
@@ -177,7 +183,7 @@ class IncomingOrderService(BaseService):
             )
             raise HTTPException(status_code=500, detail="Internal Server Error")
 
-    async def get_my_incoming_orders(self) -> List[IncomingOrderSummary]:
+    async def get_my_incoming_orders(self, limit: int, after: Optional[str] = None, before: Optional[str] = None) -> PaginatedResponse[IncomingOrderSummary]:
         """
         Retrieve all incoming orders for the current supplier.
         """
@@ -189,12 +195,20 @@ class IncomingOrderService(BaseService):
             if not supplier:
                 raise HTTPException(status_code=404, detail="Supplier profile not found for current user")
 
-            result = await self.db.execute(select(IncomingOrder).where(IncomingOrder.supplier_id == supplier.id))
-            orders = result.scalars().all()
-            if not orders:
+            query = select(IncomingOrder).where(IncomingOrder.supplier_id == supplier.id)
+            paginated_orders = await paginate(
+                db=self.db,
+                model=IncomingOrder,
+                limit=limit,
+                after=after,
+                before=before,
+                query=query
+            )
+
+            if not paginated_orders.data:
                 raise HTTPException(status_code=404, detail="No incoming orders found for this supplier")
             
-            return orders
+            return paginated_orders
         
         except HTTPException:
             raise

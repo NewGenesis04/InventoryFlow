@@ -1,9 +1,10 @@
 from fastapi import HTTPException
 from sqlalchemy.future import select
-from typing import List
+from typing import List, Optional
 from app.db.models import Product
-from app.db.schemas import ProductCreate, ProductResponse, ProductUpdate, ProductSummary
+from app.db.schemas import ProductCreate, ProductResponse, ProductUpdate, ProductSummary, PaginatedResponse
 from app.services.base import BaseService
+from app.utils import paginate
 from sqlalchemy.orm import selectinload
 import logging
 
@@ -51,20 +52,28 @@ class ProductService(BaseService):
             logger.error(f"Product could not be fetched due to error: {str(e)}")
             raise HTTPException(status_code=500, detail="Internal Server Error")
         
-    async def get_all_products(self) -> List[ProductSummary]:
+    async def get_all_products(self, limit: int, after: Optional[str] = None, before: Optional[str] = None) -> PaginatedResponse[ProductSummary]:
         try:
-            result = await self.db.execute(select(Product))
-            products = result.scalars().all()
-            if not products:
-                logger.warning("No products found in database")
-                raise HTTPException(status_code=400, detail="No products found")
-            
+            paginated_products = await paginate(
+                db=self.db,
+                model=Product,
+                limit=limit,
+                after=after,
+                before=before
+            )
 
-            logger.info(f"Total products returned: {len(products)}")
-            return products
+            if not paginated_products.data:
+                logger.warning("No products found in database")
+                raise HTTPException(status_code=404, detail="No products found")
+
+            logger.info(f"Total products returned: {len(paginated_products.data)}")
+            return paginated_products
 
         except Exception as e:
             logger.error(f"Error in fetching products: {str(e)}")
+            # Re-raise HTTPException to preserve status code
+            if isinstance(e, HTTPException):
+                raise e
             raise HTTPException(status_code=500, detail="Internal Server Error")
     
     async def update_product(self, id: int, product_update: ProductUpdate) -> ProductResponse:

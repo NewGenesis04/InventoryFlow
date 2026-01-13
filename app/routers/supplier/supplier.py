@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.schemas import User
 from app.db.database import get_db
-from app.db.schemas import SupplierCreate, SupplierResponse, SupplierUpdate, SupplierSummary
-from typing import List
+from app.db.schemas import SupplierCreate, SupplierResponse, SupplierUpdate, SupplierSummary, PaginatedResponse
+from typing import List, Optional
 from app.auth.auth_utils import get_current_user, role_required
 from app.db.models import UserRole
 from app.services.supplier_service import SupplierService
@@ -31,10 +31,16 @@ async def create_supplier(supplier: SupplierCreate, service: SupplierService = D
     logger.info("create_supplier endpoint called")
     return await service.create_supplier(supplier)
 
-@router.get("/", response_model=List[SupplierSummary], status_code=200)
-async def get_all_suppliers(service: SupplierService = Depends(get_supplier_service(True)), has_permission: bool = Depends(role_required([UserRole.admin, UserRole.staff]))):
+@router.get("/", response_model=PaginatedResponse[SupplierSummary], status_code=200)
+async def get_all_suppliers(
+    limit: int = 10,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+    service: SupplierService = Depends(get_supplier_service(True)), 
+    has_permission: bool = Depends(role_required([UserRole.admin, UserRole.staff]))
+):
     logger.info("get_all_suppliers endpoint called")
-    return await service.get_all_suppliers()
+    return await service.get_all_suppliers(limit=limit, after=after, before=before)
 
 @router.get("/me", response_model=SupplierResponse, status_code=200)
 async def get_my_supplier_profile(service: SupplierService = Depends(get_supplier_service(True)), has_permission: bool = Depends(role_required([UserRole.supplier]))):

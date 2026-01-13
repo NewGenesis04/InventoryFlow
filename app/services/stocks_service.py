@@ -1,9 +1,10 @@
 from fastapi import HTTPException
 from sqlalchemy.future import select
-from typing import List
+from typing import List, Optional
 from app.db.models import Stock
-from app.db.schemas import StockUpdate, StockResponse, StockSummary
+from app.db.schemas import StockUpdate, StockResponse, StockSummary, PaginatedResponse
 from app.services.base import BaseService
+from app.utils import paginate
 from sqlalchemy.orm import selectinload
 import logging
 
@@ -16,22 +17,27 @@ class StockService(BaseService):
     Handles retrieving stock levels and manual adjustments.
     """
 
-    async def get_all_stocks(self) -> List[StockSummary]:
+    async def get_all_stocks(self, limit: int, after: Optional[str] = None, before: Optional[str] = None) -> PaginatedResponse[StockSummary]:
         """
         Retrieve all stock entries.
         """
         try:
-            result = await self.db.execute(select(Stock))
-            stocks = result.scalars().all()
-            if not stocks:
+            paginated_stocks = await paginate(
+                db=self.db,
+                model=Stock,
+                limit=limit,
+                after=after,
+                before=before
+            )
+            if not paginated_stocks.data:
                 logger.warning("No stock entries found in database")
                 raise HTTPException(status_code=404, detail="No stock entries found")
             
             logger.info(
                 "Stock entries retrieved",
-                extra={"extra_fields": {"total_stocks": len(stocks)}}
+                extra={"extra_fields": {"total_stocks": len(paginated_stocks.data)}}
             )
-            return stocks
+            return paginated_stocks
 
         except HTTPException:
             raise

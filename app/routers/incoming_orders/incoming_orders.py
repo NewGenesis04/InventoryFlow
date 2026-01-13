@@ -1,6 +1,6 @@
 import logging
 from fastapi import APIRouter, Depends, status
-from typing import List
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.schemas import (
     IncomingOrderCreate,
@@ -8,6 +8,7 @@ from app.db.schemas import (
     IncomingOrderSummary,
     User,
     IncomingOrderStatusUpdate,
+    PaginatedResponse,
 )
 from app.db.database import get_db
 from app.db.models import UserRole
@@ -48,14 +49,17 @@ async def create_incoming_order(
 
 
 @router.get(
-    "/", response_model=List[IncomingOrderSummary], status_code=status.HTTP_200_OK
+    "/", response_model=PaginatedResponse[IncomingOrderSummary], status_code=status.HTTP_200_OK
 )
 async def get_all_incoming_orders(
+    limit: int = 10,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
     service: IncomingOrderService = Depends(get_incoming_order_service(True)),
     has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff])),
 ):
     logger.info("get all incoming orders endpoint called")
-    return await service.get_all_incoming_orders()
+    return await service.get_all_incoming_orders(limit=limit, after=after, before=before)
 
 
 @router.get(
@@ -70,14 +74,17 @@ async def get_incoming_order_by_id(
     return await service.get_incoming_order_by_id(id)
 
 @router.get(
-    "/me", response_model=List[IncomingOrderSummary], status_code=status.HTTP_200_OK
+    "/me", response_model=PaginatedResponse[IncomingOrderSummary], status_code=status.HTTP_200_OK
 )
 async def get_my_incoming_orders(
+    limit: int = 10,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
     service: IncomingOrderService = Depends(get_incoming_order_service(True)),
     has_permissions: bool = Depends(role_required([UserRole.supplier])),
 ):
     logger.info("get my incoming orders endpoint called")
-    return await service.get_my_incoming_orders()
+    return await service.get_my_incoming_orders(limit=limit, after=after, before=before)
 
 @router.patch(
     "/{id}", response_model=IncomingOrderResponse, status_code=status.HTTP_200_OK

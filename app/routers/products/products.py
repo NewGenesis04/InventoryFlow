@@ -1,8 +1,8 @@
 import logging
 from fastapi import APIRouter, Depends, status
-from typing import List
+from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.schemas import ProductCreate, ProductResponse, User, ProductUpdate, ProductSummary
+from app.db.schemas import ProductCreate, ProductResponse, User, ProductUpdate, ProductSummary, PaginatedResponse
 from app.db.database import get_db
 from app.db.models import UserRole
 from app.auth.auth_utils import get_current_user, role_required
@@ -36,10 +36,16 @@ async def get_product_by_id(id: int, service: ProductService = Depends(get_produ
     logger.info("get product by id endpoint called")
     return await service.get_product_by_id(id)
 
-@router.get("/", response_model=List[ProductSummary], status_code=status.HTTP_200_OK)
-async def get_all_products(service: ProductService = Depends(get_product_service(True)), has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff, UserRole.customer, UserRole.supplier]))):
+@router.get("/", response_model=PaginatedResponse[ProductSummary], status_code=status.HTTP_200_OK)
+async def get_all_products(
+    limit: int = 10,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+    service: ProductService = Depends(get_product_service(True)), 
+    has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff, UserRole.customer, UserRole.supplier]))
+):
     logger.info("get all products endpoint called")
-    return await service.get_all_products()
+    return await service.get_all_products(limit=limit, after=after, before=before)
 
 @router.put("/{id}", status_code=status.HTTP_200_OK)
 async def update_product(id: int, product_update: ProductUpdate, service: ProductService = Depends(get_product_service(True)), has_permissions: bool = Depends(role_required([UserRole.admin]))):

@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.schemas import User
 from app.db.database import get_db
-from app.db.schemas import CustomerCreate, CustomerResponse, CustomerUpdate, CustomerSummary
-from typing import List
+from app.db.schemas import CustomerCreate, CustomerResponse, CustomerUpdate, CustomerSummary, PaginatedResponse
+from typing import Optional
 from app.auth.auth_utils import get_current_user, role_required
 from app.db.models import UserRole
 from app.services.customer_service import CustomerService
@@ -31,10 +31,16 @@ async def create_customer(customer: CustomerCreate, service: CustomerService = D
     logger.info("create_customer endpoint called")
     return await service.create_customer(customer)
 
-@router.get("/", response_model=List[CustomerSummary], status_code=200)
-async def get_all_customers(service: CustomerService = Depends(get_customer_service(True)), has_permission: bool = Depends(role_required([UserRole.admin, UserRole.staff]))):
+@router.get("/", response_model=PaginatedResponse[CustomerSummary], status_code=200)
+async def get_all_customers(
+    limit: int = 10,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+    service: CustomerService = Depends(get_customer_service(True)), 
+    has_permission: bool = Depends(role_required([UserRole.admin, UserRole.staff]))
+):
     logger.info("get_all_customers endpoint called")
-    return await service.get_all_customers()
+    return await service.get_all_customers(limit=limit, after=after, before=before)
 
 @router.get("/{customer_id}", response_model=CustomerResponse, status_code=200)
 async def get_customer_by_id(customer_id: int, service: CustomerService = Depends(get_customer_service(True)), has_permission: bool = Depends(role_required([UserRole.admin, UserRole.staff, UserRole.customer]))):

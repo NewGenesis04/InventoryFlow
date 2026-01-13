@@ -1,8 +1,8 @@
 import logging
 from fastapi import APIRouter, Depends, status
-from typing import List
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.schemas import OutgoingOrderCreate, OutgoingOrderResponse, OutgoingOrderSummary, User
+from app.db.schemas import OutgoingOrderCreate, OutgoingOrderResponse, OutgoingOrderSummary, User, PaginatedResponse
 from app.db.database import get_db
 from app.db.models import UserRole
 from app.auth.auth_utils import get_current_user, role_required
@@ -30,10 +30,16 @@ async def create_outgoing_order(order: OutgoingOrderCreate, service: OutgoingOrd
     logger.info("create outgoing order endpoint called")
     return await service.create_outgoing_order(order)
 
-@router.get("/", response_model=List[OutgoingOrderSummary], status_code=status.HTTP_200_OK)
-async def get_all_outgoing_orders(service: OutgoingOrderService = Depends(get_outgoing_order_service(True)), has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff]))):
+@router.get("/", response_model=PaginatedResponse[OutgoingOrderSummary], status_code=status.HTTP_200_OK)
+async def get_all_outgoing_orders(
+    limit: int = 10,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+    service: OutgoingOrderService = Depends(get_outgoing_order_service(True)), 
+    has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff]))
+):
     logger.info("get all outgoing orders endpoint called")
-    return await service.get_all_outgoing_orders()
+    return await service.get_all_outgoing_orders(limit=limit, after=after, before=before)
 
 @router.get("/{id}", response_model=OutgoingOrderResponse, status_code=status.HTTP_200_OK)
 async def get_outgoing_order_by_id(id: int, service: OutgoingOrderService = Depends(get_outgoing_order_service(True)), has_permissions: bool = Depends(role_required([UserRole.admin, UserRole.staff, UserRole.customer]))):

@@ -1,9 +1,10 @@
 from fastapi import HTTPException
 from sqlalchemy.future import select
-from typing import List
+from typing import Optional
 from app.db.models import OutgoingOrder, Product, Stock, Customer, OrderStatusEnum
-from app.db.schemas import OutgoingOrderCreate, OutgoingOrderResponse, OutgoingOrderSummary
+from app.db.schemas import OutgoingOrderCreate, OutgoingOrderResponse, OutgoingOrderSummary, PaginatedResponse
 from app.services.base import BaseService
+from app.utils import paginate
 from sqlalchemy.orm import selectinload
 import logging
 
@@ -122,22 +123,27 @@ class OutgoingOrderService(BaseService):
             await self.db.rollback()
             raise HTTPException(status_code=500, detail="Internal Server Error")
     
-    async def get_all_outgoing_orders(self) -> List[OutgoingOrderSummary]:
+    async def get_all_outgoing_orders(self, limit: int, after: Optional[str] = None, before: Optional[str] = None) -> PaginatedResponse[OutgoingOrderSummary]:
         """
         Retrieve all outgoing orders.
         """
         try:
-            result = await self.db.execute(select(OutgoingOrder))
-            orders = result.scalars().all()
-            if not orders:
+            paginated_orders = await paginate(
+                db=self.db,
+                model=OutgoingOrder,
+                limit=limit,
+                after=after,
+                before=before
+            )
+            if not paginated_orders.data:
                 logger.warning("No outgoing orders found in database")
                 raise HTTPException(status_code=404, detail="No outgoing orders found")
             
             logger.info(
                 "Outgoing orders retrieved",
-                extra={"extra_fields": {"total_orders": len(orders)}}
+                extra={"extra_fields": {"total_orders": len(paginated_orders.data)}}
             )
-            return orders
+            return paginated_orders
         
         except HTTPException:
             raise
